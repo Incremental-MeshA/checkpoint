@@ -6,8 +6,14 @@ public:
 
     Result plan(Node new_start, const Batch &batch, Metrics &metrics) override {
         bool first_query = start == -1;
-        if (!first_query)
-            km = km + graph.reverse(start, new_start);
+        if (!first_query && graph.cell(start) != graph.cell(new_start)) {
+            // Lazy OPEN keys must stay lower bounds when the start moves. Rounding
+            // three scaled hypot distances can violate the triangle inequality by
+            // a few ulps. Bound that error even for the largest int coordinates.
+            constexpr double roundoff = 16 * std::numeric_limits<double>::epsilon()
+                                           * std::numeric_limits<int>::max();
+            km = km + graph.reverse(start, new_start) + Cost::length(roundoff);
+        }
         start = new_start;
         labels.try_emplace(start);
 
