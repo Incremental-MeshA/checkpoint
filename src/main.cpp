@@ -57,10 +57,11 @@ void print_edge_samples(const CellChecks &checks) {
 }
 int main(int argc, char **argv) {
     try {
-        bool tracing = argc == 9 && std::string(argv[8]) == "--trace";
+        bool state_steps = argc == 9 && std::string(argv[8]) == "--trace-states";
+        bool tracing = state_steps || (argc == 9 && std::string(argv[8]) == "--trace");
         if (argc != 8 && !tracing)
             throw std::runtime_error(
-                "Usage: planner MAP PRIMITIVES GRAPH ALGORITHM GOAL_X GOAL_Y GOAL_H [--trace]");
+                "Usage: planner MAP PRIMITIVES GRAPH ALGORITHM GOAL_X GOAL_Y GOAL_H [--trace|--trace-states]");
         Grid grid(argv[1]);
         auto controls = load_primitives(argv[2]);
         std::string kind = argv[3], algorithm = argv[4];
@@ -139,7 +140,17 @@ int main(int argc, char **argv) {
             print_ops(m.repair);
             if (tracing) {
                 print_cell_frames(m.trace, checks.counts);
-                print_edge_samples(checks);
+                if (state_steps) {
+                    std::cout << ",\"state_counts\":[";
+                    for (size_t i = 0; i < m.trace.size(); ++i) {
+                        const auto counts = i+1 < m.trace.size() ? m.trace[i+1].before : checks.counts;
+                        if (i) std::cout << ',';
+                        std::cout << counts.unique << ',' << counts.reads;
+                    }
+                    std::cout << ']';
+                } else {
+                    print_edge_samples(checks);
+                }
                 std::cout << ",\"trace\":[";
                 for (size_t i = 0; i < m.trace.size(); ++i) {
                     if (i) std::cout << ',';

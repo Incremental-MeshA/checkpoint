@@ -1,0 +1,414 @@
+{
+  "binary_sha256": "4309256b9d93b4a95a9fc59ffaf0b264daafdc7f5ed669c5568f3db54a40ec56",
+  "machine": "DESKTOP-0FSDPPO",
+  "cpu": "Intel(R) Core(TM) i5-9400F CPU @ 2.90GHz",
+  "os": "Windows-10-10.0.19045-SP0",
+  "python": "3.14.5rc1 (tags/v3.14.5rc1:a68a919, May  4 2026, 15:56:38) [MSC v.1944 64 bit (AMD64)]",
+  "build": [
+    "GNU 15.2.0",
+    "C:/Program Files/JetBrains/CLion 2026.2.3/bin/mingw/bin/c++.exe",
+    "Release  -O3 -DNDEBUG"
+  ],
+  "compiler_env": {
+    "CXXFLAGS": ""
+  },
+  "sources": {
+    "base_control_set.txt": {
+      "url": "https://raw.githubusercontent.com/PathPlanning/MeshAStar/12574ff03d8d61ac153b4e4224eac2229a9577e1/data/base_control_set.txt",
+      "sha256": "c271e6ac1adc0c4d52101c86ad0dded54439199f14fe58ee719eee58f2d88a33"
+    },
+    "MeshAStar-LICENSE.txt": {
+      "url": "https://raw.githubusercontent.com/PathPlanning/MeshAStar/12574ff03d8d61ac153b4e4224eac2229a9577e1/LICENSE.txt",
+      "sha256": "941f3562b07a0dff9380ad535bc3081d5a94d1cf1b6213c1d88a9c592f4447ef"
+    },
+    "random512-10-0.map": {
+      "url": "https://www.movingai.com/benchmarks/random/random512-10-0.map.zip",
+      "sha256": "df47a4030f8967d8be60b33fecd1f6aa059132a2fe1e1b19e463dc52c0838654"
+    },
+    "random512-10-0.map.scen": {
+      "url": "https://www.movingai.com/benchmarks/random/random512-10-0.map-scen.zip",
+      "sha256": "4321aa42397455bafef06c8d50c0a0e343c48b270ac51cec0c10acb9db45f418"
+    },
+    "random512-10-1.map": {
+      "url": "https://www.movingai.com/benchmarks/random/random512-10-1.map.zip",
+      "sha256": "0b0a33d6d9d1afa891c086174171dc2b9d6e17083d51abe4c70d1ccfee195128"
+    },
+    "random512-10-1.map.scen": {
+      "url": "https://www.movingai.com/benchmarks/random/random512-10-1.map-scen.zip",
+      "sha256": "9e6e045f85b2ff1cc971ea9ec8720844a670fff5c8dee2e9b01c85d828a2bb47"
+    },
+    "random512-10-2.map": {
+      "url": "https://www.movingai.com/benchmarks/random/random512-10-2.map.zip",
+      "sha256": "3416d3abe475300c77393235a1fa0c3bbdad61a62afccd522c0cc42715df9f5b"
+    },
+    "random512-10-2.map.scen": {
+      "url": "https://www.movingai.com/benchmarks/random/random512-10-2.map-scen.zip",
+      "sha256": "bf0afb686a81e27a899922afed50fc05bf01a8b6f3cbc65225a75c0f0f79e8ba"
+    },
+    "random512-10-3.map": {
+      "url": "https://www.movingai.com/benchmarks/random/random512-10-3.map.zip",
+      "sha256": "4063a258b50d1cf6aba7081de1926ba5239c51ce44e97cdc562d7b857f603e00"
+    },
+    "random512-10-3.map.scen": {
+      "url": "https://www.movingai.com/benchmarks/random/random512-10-3.map-scen.zip",
+      "sha256": "d14eee4993e9f665f7aaa35e465a34d88ce89d39cd5413b6d1a132a2977697b9"
+    },
+    "Berlin_2_512.map": {
+      "url": "https://www.movingai.com/benchmarks/street/Berlin_2_512.map.zip",
+      "sha256": "8e5efbc4e86ecf160c6bd35356becf5e6bdf6082efcd864bb7db00eca4421804"
+    },
+    "Berlin_2_512.map.scen": {
+      "url": "https://www.movingai.com/benchmarks/street/Berlin_2_512.map-scen.zip",
+      "sha256": "7251e04641825eea8c7e7b7c2e789499c00e1d119ead40733957508d42bfd120"
+    },
+    "Boston_2_512.map": {
+      "url": "https://www.movingai.com/benchmarks/street/Boston_2_512.map.zip",
+      "sha256": "bbc46e4a8ffc025375cd1ca166ea48ecb3876c9eca78dfba4d2f072c50b28770"
+    },
+    "Boston_2_512.map.scen": {
+      "url": "https://www.movingai.com/benchmarks/street/Boston_2_512.map-scen.zip",
+      "sha256": "22b5f439a9079063947d3d005e2315152519ae049362daf949c1d9e8830dfdd5"
+    },
+    "Milan_0_512.map": {
+      "url": "https://www.movingai.com/benchmarks/street/Milan_0_512.map.zip",
+      "sha256": "4bf9e71d76f0d882e15c10313aba6058a3e5ea0fe3a70a87d429fdd3a824e296"
+    },
+    "Milan_0_512.map.scen": {
+      "url": "https://www.movingai.com/benchmarks/street/Milan_0_512.map-scen.zip",
+      "sha256": "2c39635143e70385e35dba56cbd699720c2fb4ecb9de2a11d918f93720453861"
+    },
+    "Moscow_1_512.map": {
+      "url": "https://www.movingai.com/benchmarks/street/Moscow_1_512.map.zip",
+      "sha256": "3bc52d5ca43de9c6fb6edd4b05e28b76b5b2e318fe2352cca370386d2278fcf4"
+    },
+    "Moscow_1_512.map.scen": {
+      "url": "https://www.movingai.com/benchmarks/street/Moscow_1_512.map-scen.zip",
+      "sha256": "0dd5d23aeadd29d617c185a9fe03b839951a150a8d278cab6da647b242c08af4"
+    },
+    "maze512-4-0.map": {
+      "url": "https://www.movingai.com/benchmarks/maze/maze512-4-0.map.zip",
+      "sha256": "81a79c24f861caca0baed82d9569ffe1adf1a05bd326f4239dc3d6dc72d807b7"
+    },
+    "maze512-4-0.map.scen": {
+      "url": "https://www.movingai.com/benchmarks/maze/maze512-4-0.map-scen.zip",
+      "sha256": "904dca83593f1fc8f6823c31febdbef00238112a9aed9f8a9378fd5e4638775c"
+    },
+    "maze512-8-0.map": {
+      "url": "https://www.movingai.com/benchmarks/maze/maze512-8-0.map.zip",
+      "sha256": "0acd62f4e854db729240f49896b6bdc6f5127ec32d2d3f14c43f56ad99a39ecc"
+    },
+    "maze512-8-0.map.scen": {
+      "url": "https://www.movingai.com/benchmarks/maze/maze512-8-0.map-scen.zip",
+      "sha256": "ceaaa8af265e6a2635026220c8f205d08e369d40d64ed921604e02dd95101863"
+    },
+    "maze512-16-0.map": {
+      "url": "https://www.movingai.com/benchmarks/maze/maze512-16-0.map.zip",
+      "sha256": "7fd1b43f296738c093cbd5f589b1414fbb8cc35f7d7462fd188c21fa3f99aac3"
+    },
+    "maze512-16-0.map.scen": {
+      "url": "https://www.movingai.com/benchmarks/maze/maze512-16-0.map-scen.zip",
+      "sha256": "4a0d78bdcf46ddae03df806a28130ab867261844a5ca892b657aeb9f5b07f0f7"
+    },
+    "maze512-32-0.map": {
+      "url": "https://www.movingai.com/benchmarks/maze/maze512-32-0.map.zip",
+      "sha256": "b25a0b21f0366e973b603ab700e24de99570c0f8a2c61a78c44a0807057b37fc"
+    },
+    "maze512-32-0.map.scen": {
+      "url": "https://www.movingai.com/benchmarks/maze/maze512-32-0.map-scen.zip",
+      "sha256": "c6624a27d975183d19813b91a017afe88e4cf5eda0fa2d39b9982e5b315cfc7f"
+    }
+  },
+  "manifest_sha256": "0b9260076541da1792b285914598e11bbb49eae8775853e130f0d16b18d0de62",
+  "profile": "long",
+  "percent": 0.5,
+  "budget_seconds": 7200,
+  "config": {
+    "scenario": "navigation_replanning",
+    "seed": 20261122,
+    "maps": [
+      "random512-10-0",
+      "random512-10-1",
+      "random512-10-2",
+      "random512-10-3"
+    ],
+    "pairs": [],
+    "change_percent": 0.1,
+    "change_percents": [
+      0.1,
+      0.5,
+      1,
+      5,
+      10
+    ],
+    "profiles": {
+      "quick": {
+        "budget_seconds": 300,
+        "repeats": 1
+      },
+      "long": {
+        "budget_seconds": 7200,
+        "repeats": 3
+      }
+    }
+  },
+  "repeats": 3,
+  "tasks": [
+    {
+      "id": "random512-10-0-L119",
+      "map": "random512-10-0",
+      "line": 119,
+      "start": [
+        123,
+        211,
+        11
+      ],
+      "goal": [
+        91,
+        236,
+        10
+      ],
+      "pose_seed": 266474455766254763,
+      "grid_length": 44.11269836,
+      "band": "short",
+      "initial_cost": 47.36772389310391,
+      "initial_moves": 13,
+      "quick": true
+    },
+    {
+      "id": "random512-10-0-L210",
+      "map": "random512-10-0",
+      "line": 210,
+      "start": [
+        167,
+        63,
+        1
+      ],
+      "goal": [
+        137,
+        133,
+        11
+      ],
+      "pose_seed": 113793111656979121,
+      "grid_length": 83.59797974,
+      "band": "medium",
+      "initial_cost": 84.64785753019389,
+      "initial_moves": 26,
+      "quick": true
+    },
+    {
+      "id": "random512-10-0-L225",
+      "map": "random512-10-0",
+      "line": 225,
+      "start": [
+        158,
+        79,
+        2
+      ],
+      "goal": [
+        247,
+        83,
+        12
+      ],
+      "pose_seed": 108383611521424322,
+      "grid_length": 91.48528137,
+      "band": "long",
+      "initial_cost": 94.01336790048532,
+      "initial_moves": 29,
+      "quick": false
+    },
+    {
+      "id": "random512-10-1-L210",
+      "map": "random512-10-1",
+      "line": 210,
+      "start": [
+        295,
+        372,
+        7
+      ],
+      "goal": [
+        366,
+        344,
+        7
+      ],
+      "pose_seed": 21328741052542583,
+      "grid_length": 82.59797974,
+      "band": "medium",
+      "initial_cost": 100.6857672063579,
+      "initial_moves": 26,
+      "quick": true
+    },
+    {
+      "id": "random512-10-1-L244",
+      "map": "random512-10-1",
+      "line": 244,
+      "start": [
+        175,
+        231,
+        14
+      ],
+      "goal": [
+        244,
+        170,
+        4
+      ],
+      "pose_seed": 728631058430840142,
+      "grid_length": 99.53910522,
+      "band": "long",
+      "initial_cost": 98.42636358060754,
+      "initial_moves": 34,
+      "quick": true
+    },
+    {
+      "id": "random512-10-1-L118",
+      "map": "random512-10-1",
+      "line": 118,
+      "start": [
+        331,
+        91,
+        11
+      ],
+      "goal": [
+        288,
+        103,
+        8
+      ],
+      "pose_seed": 142866834263184011,
+      "grid_length": 47.97056274,
+      "band": "short",
+      "initial_cost": 56.27592682486225,
+      "initial_moves": 18,
+      "quick": false
+    },
+    {
+      "id": "random512-10-2-L241",
+      "map": "random512-10-2",
+      "line": 241,
+      "start": [
+        130,
+        225,
+        14
+      ],
+      "goal": [
+        146,
+        138,
+        6
+      ],
+      "pose_seed": 641397667329263982,
+      "grid_length": 95.04163055,
+      "band": "long",
+      "initial_cost": 104.78197338463671,
+      "initial_moves": 30,
+      "quick": true
+    },
+    {
+      "id": "random512-10-2-L141",
+      "map": "random512-10-2",
+      "line": 141,
+      "start": [
+        96,
+        333,
+        5
+      ],
+      "goal": [
+        140,
+        310,
+        14
+      ],
+      "pose_seed": 879592348174018789,
+      "grid_length": 54.11269836,
+      "band": "short",
+      "initial_cost": 61.59668557047906,
+      "initial_moves": 13,
+      "quick": true
+    },
+    {
+      "id": "random512-10-2-L187",
+      "map": "random512-10-2",
+      "line": 187,
+      "start": [
+        250,
+        127,
+        11
+      ],
+      "goal": [
+        296,
+        76,
+        6
+      ],
+      "pose_seed": 440261800976609131,
+      "grid_length": 74.74011536,
+      "band": "medium",
+      "initial_cost": 83.95331274645054,
+      "initial_moves": 27,
+      "quick": false
+    },
+    {
+      "id": "random512-10-3-L128",
+      "map": "random512-10-3",
+      "line": 128,
+      "start": [
+        286,
+        324,
+        2
+      ],
+      "goal": [
+        270,
+        281,
+        11
+      ],
+      "pose_seed": 123841797694714802,
+      "grid_length": 49.62741699,
+      "band": "short",
+      "initial_cost": 61.26168167119068,
+      "initial_moves": 14,
+      "quick": true
+    },
+    {
+      "id": "random512-10-3-L190",
+      "map": "random512-10-3",
+      "line": 190,
+      "start": [
+        346,
+        346,
+        5
+      ],
+      "goal": [
+        414,
+        357,
+        3
+      ],
+      "pose_seed": 379681296263158069,
+      "grid_length": 72.55634918,
+      "band": "medium",
+      "initial_cost": 75.23352760920214,
+      "initial_moves": 14,
+      "quick": true
+    },
+    {
+      "id": "random512-10-3-L276",
+      "map": "random512-10-3",
+      "line": 276,
+      "start": [
+        375,
+        438,
+        11
+      ],
+      "goal": [
+        458,
+        381,
+        10
+      ],
+      "pose_seed": 102578112970559659,
+      "grid_length": 108.95331879,
+      "band": "long",
+      "initial_cost": 115.29395576509063,
+      "initial_moves": 34,
+      "quick": false
+    }
+  ],
+  "episode_budget_seconds": 60.0,
+  "wall_seconds": 111.48174480000307,
+  "outcomes": {
+    "reached": 216
+  }
+}

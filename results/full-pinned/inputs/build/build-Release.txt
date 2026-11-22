@@ -1,0 +1,3 @@
+GNU 15.2.0
+C:/Program Files/JetBrains/CLion 2026.2.3/bin/mingw/bin/c++.exe
+Release  -O3 -DNDEBUG

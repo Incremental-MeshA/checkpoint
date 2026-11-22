@@ -36,6 +36,17 @@ export class MapLayer {
 export const phases = ["Search", "Heuristic repair", "Update seeds"];
 export const outcome = {reached: "Goal reached", no_path: "No path found"};
 
+// Find the stored segment containing a virtual playback frame.
+function segmentAt(ends, frame) {
+    let lo = 0, hi = ends.length - 1;
+    while (lo < hi) {
+        const mid = Math.floor((lo + hi) / 2);
+        if (ends[mid] < frame) lo = mid + 1;
+        else hi = mid;
+    }
+    return lo;
+}
+
 export class Replay {
     constructor(base, width, spec, controls, animateEdges=false) {
         this.animateEdges = animateEdges;
@@ -45,11 +56,14 @@ export class Replay {
         this.actual = spec.scenario === "limited_visibility" ? new MapLayer(base, width) : this.known;
         this.moves = [];
         this.replans = new Set();
+        this.ends = [0];
         this.frames = [{phase: "Ready to run", moved: 0, known: 0, actual: 0, event: -1,
                         search: null, count: 0, expanded: 0, checkedCells: 0, cellChecks: 0, plan: null, offset: 0, edit: null}];
     }
     add(fields) {
-        this.frames.push({...this.frames[this.frames.length - 1], edit: null, candidate: null, ...fields});
+        this.frames.push({...this.frames[this.frames.length - 1], edit: null, candidate: null,
+                          steps: 1, stateCounts: null, ...fields});
+        this.ends.push(this.ends[this.ends.length - 1] + (fields.steps || 1));
     }
     pose(moved) {
         return moved ? this.moves[moved - 1].pose : this.spec.start;
@@ -74,6 +88,9 @@ export class Replay {
             if (!Array.isArray(r.trace) || !Array.isArray(r.cell_frames))
                 throw Error("Rebuild the planner to enable cell check counts.");
             const trace = Uint32Array.from(r.trace);
+            if (this.spec.state_steps && r.state_counts?.length !== 2 * trace.length)
+                throw Error("Restart the viewer and rebuild the planner to enable single-state steps.");
+            const stateCounts = this.spec.state_steps ? Float64Array.from(r.state_counts) : null;
             const samples = this.animateEdges ? r.edge_samples : [];
             if (!samples) throw Error("Rebuild the planner to enable edge animation.");
             let sampleIndex = 0;
@@ -99,9 +116,11 @@ export class Replay {
                                   expanded: expanded + (kind === 2 ? 0 : event - previousCount)});
                     }
                 }
-                if (kind !== 2) expanded += count - previousCount;
+                const expansions = kind === 2 ? 0 : count - previousCount;
+                expanded += expansions;
                 previousCount = count;
-                this.add({phase, search: trace, count, expanded, checkedCells, cellChecks});
+                this.add({phase, search: trace, count, expanded, checkedCells, cellChecks,
+                          steps: stateCounts && expansions ? expansions : 1, stateCounts});
             }
             const origin = this.pose(this.moves.length);
             const plan = [];
@@ -132,8 +151,16 @@ export class Replay {
             throw Error(r.error);
         }
     }
+    frameAt(index) {
+        const segment = segmentAt(this.ends, index);
+        const frame = this.frames[segment], remaining = this.ends[segment] - index;
+        if (!remaining) return frame;
+        const count = frame.count - remaining;
+        return {...frame, count, expanded: frame.expanded - remaining,
+                checkedCells: frame.stateCounts[2*count-2], cellChecks: frame.stateCounts[2*count-1]};
+    }
     seek(index) {
-        const frame = this.frames[index];
+        const frame = this.frameAt(index);
         this.known.seek(frame.known);
         if (this.known !== this.actual) this.actual.seek(frame.actual);
         return frame;
@@ -147,19 +174,40 @@ export class Playback {
         this.replays = replays;
         this.finished = replays.map(() => false);
         this.positions = [replays.map(() => 0)];
+        this.ends = [0];
+        this.nextFrame = replays.map(() => 1);
+        this.used = replays.map(() => 0);
         this.replans = [];
+    }
+    get last() { return this.ends[this.ends.length - 1]; }
+    indicesAt(frame) {
+        const segment = segmentAt(this.ends, frame);
+        const position = this.positions[segment], remaining = this.ends[segment] - frame;
+        if (!remaining) return position;
+        return position.map((index,i) => index === this.positions[segment-1][i] ? index : index-remaining);
     }
     extend() {
         let previous = this.positions[this.positions.length - 1];
         while (true) {
-            const next = this.replays.map((r, i) => r.frames[previous[i] + 1]);
+            const next = this.replays.map((r, i) => r.frames[this.nextFrame[i]]);
             if (next.some((f, i) => !f && !this.finished[i])) return;
             const move = Math.min(...next.map(f => f ? f.moved : Infinity));
             if (!Number.isFinite(move)) return;
-            const position = previous.map((index, i) =>
-                next[i] && next[i].moved === move ? index + 1 : index);
-            if (position.some((index, i) => index !== previous[i] && this.replays[i].replans.has(index)))
-                this.replans.push(this.positions.length);
+            // Merge whole runs of single-state steps without allocating a JS object per expansion.
+            const length = Math.min(...next.map((f,i) => f?.moved === move ? (f.steps || 1)-this.used[i] : Infinity));
+            let replan = false;
+            const position = previous.map((index, i) => {
+                if (next[i]?.moved !== move) return index;
+                if (!this.used[i] && this.replays[i].replans.has(this.nextFrame[i])) replan = true;
+                this.used[i] += length;
+                if (this.used[i] === (next[i].steps || 1)) {
+                    this.used[i] = 0;
+                    this.nextFrame[i]++;
+                }
+                return index + length;
+            });
+            if (replan) this.replans.push(this.last + 1);
+            this.ends.push(this.last + length);
             this.positions.push(position);
             previous = position;
         }

@@ -21,7 +21,8 @@ function options(id, values, label=value=>names[value] || value) {
 function settings(panel) {
     return {map:$("map").value, task:$("task").value, start:[...start], goal:[...goal],
         scenario:$("scenario").value, algorithm:panel.algorithm.value, graph:panel.graph.value,
-        percent:Number($("percent").value), radius:Number($("radius").value), seed:$("seed").value};
+        percent:Number($("percent").value), radius:Number($("radius").value), seed:$("seed").value,
+        state_steps:$("detail").value==="state"};
 }
 function update() {
     if (scheduled) return;
@@ -29,9 +30,10 @@ function update() {
     requestAnimationFrame(()=>{
         scheduled=false;
         if (!playback) return;
-        const last=playback.positions.length-1;
+        const last=playback.last;
+        const positions=playback.indicesAt(frame);
         playback.replays.forEach((replay, i) => {
-            const panel=panels[i], f=replay.seek(playback.positions[frame][i]);
+            const panel=panels[i], f=replay.seek(positions[i]);
             panel.view.draw(replay,f,$("world").checked);
             panel.phase.textContent=active && !last ? "Planning route…" : f.phase;
             const cost=f.cost == null ? "—" : f.cost.toLocaleString("en",{maximumFractionDigits:2});
@@ -56,7 +58,7 @@ function play() {
     playing=true;
     function tick() {
         if (!playing) return;
-        if (frame+1<playback.positions.length) frame++;
+        if (frame<playback.last) frame++;
         else if (!active) return pause();
         update();
         timer=setTimeout(tick,160/parseFloat($("speed").value));
@@ -84,7 +86,7 @@ function reset() {
         panel.title.textContent=names[spec.algorithm]+" · "+spec.graph;
         panel.view.selected=null;
         panel.view.trace=null;
-        return new Replay(grid,width,spec,controls,$("edges").checked);
+        return new Replay(grid,width,spec,controls,$("detail").value==="edges");
     }));
     $("error").textContent="";
     update();
@@ -172,7 +174,8 @@ async function run(event) {
     setPlacement(null);reset();
     const job={key:crypto.randomUUID(),controller:new AbortController(),
                slots:playback.replays.map((_,i)=>panels[i].slot)};
-    active=job;play();
+    active=job;
+    if (!playback.replays[0].spec.state_steps) play();
     await Promise.all(playback.replays.map((replay,i)=>streamEpisode(job,replay,i)));
     if (active===job) active=null;
     update();
@@ -221,7 +224,7 @@ function bind() {
     $("compare").onclick=()=>setMode(true);
     $("map").onchange=()=>mapChanged().catch(showError);
     $("task").onchange=taskChanged;$("scenario").onchange=scenarioChanged;
-    for (const id of ["radius","percent","seed","graph","algorithm","graph2","algorithm2","edges"]) $(id).onchange=reset;
+    for (const id of ["radius","percent","seed","graph","algorithm","graph2","algorithm2","detail"]) $(id).onchange=reset;
     $("setStart").onclick=()=>setPlacement("start");$("setGoal").onclick=()=>setPlacement("goal");
     $("startH").onchange=()=>{start[2]=Number($("startH").value);reset();};
     $("goalH").onchange=()=>{goal[2]=Number($("goalH").value);reset();};
@@ -233,11 +236,11 @@ function bind() {
     $("fit").onclick=()=>focus(true);$("focus").onclick=()=>focus();
     $("timeline").oninput=()=>{pause();frame=Number($("timeline").value);update();};
     $("prev").onclick=()=>{pause();frame=Math.max(0,frame-1);update();};
-    $("next").onclick=()=>{pause();frame=Math.min(playback.positions.length-1,frame+1);update();};
+    $("next").onclick=()=>{pause();frame=Math.min(playback.last,frame+1);update();};
     $("replan").onclick=()=>{pause();frame=playback.replans.find(i=>i>frame) ?? frame;update();};
     $("play").onclick=()=>{
         if (playing) return pause();
-        if (!active && frame===playback.positions.length-1) frame=0;
+        if (!active && frame===playback.last) frame=0;
         play();
     };
     panels.forEach(bindCanvas);
@@ -274,7 +277,7 @@ function bindCanvas({canvas,view},i) {
         if (!click || !playback) return;
         const [x,y]=view.point(e.offsetX,e.offsetY);
         if (!placement) {
-            view.pick(playback.replays[i].frames[playback.positions[frame][i]],x,y);
+            view.pick(playback.replays[i].frameAt(playback.indicesAt(frame)[i]),x,y);
             syncCamera(view);return;
         }
         const cx=Math.floor(x),cy=Math.floor(y);

@@ -36,7 +36,11 @@
     <div class="pair"><label>Algorithm<select id="algorithm2"></select></label>
     <label>Graph<select id="graph2"></select></label></div>
   </fieldset>
-  <label class="check" title="Step through the candidate edges of sampled search states"><input type="checkbox" id="edges">Animate edge checks</label>
+  <label>Playback detail<select id="detail">
+    <option value="group">Grouped expansions</option>
+    <option value="state">One state expansion</option>
+    <option value="edges">Animate edge checks</option>
+  </select></label>
   <button class="primary" id="run" disabled>Run</button>
   <p role="alert" id="error"></p>
 </form></aside>

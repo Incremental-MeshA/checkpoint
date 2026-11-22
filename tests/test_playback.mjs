@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {Playback} from "../bench/viewer/episode.js";
+import {Playback, Replay} from "../bench/viewer/episode.js";
 
 function replay(moves, replans = []) {
     return {frames: moves.map(moved => ({moved})), replans: new Set(replans)};
@@ -37,4 +37,23 @@ test("single mode streams all frames immediately", () => {
     sequence.extend();
     assert.deepEqual(sequence.positions, [[0],[1],[2],[3]]);
     assert.deepEqual(sequence.replans, [3]);
+});
+
+test("single expansions merge across unequal batches and rewind with exact counters", () => {
+    const left = replay([0,0,1]), right = replay([0,0,0,1]);
+    left.frames[1].steps = 4;
+    right.frames[2].steps = 2;
+    const sequence = new Playback([left,right]);
+    sequence.finished.fill(true);
+    sequence.extend();
+    assert.deepEqual(Array.from({length:sequence.last+1}, (_, i)=>sequence.indicesAt(i)),
+        [[0,0],[1,1],[2,2],[3,3],[4,3],[5,4]]);
+
+    const segment = {count:5, expanded:3, checkedCells:9, cellChecks:60,
+                     stateCounts:[1,2,2,4,5,20,7,37,9,60]};
+    const r = Object.assign(Object.create(Replay.prototype), {ends:[0,1,4], frames:[{}, {}, segment]});
+    for (const [index,expansions,unique,reads] of [[4,3,9,60],[2,1,5,20],[3,2,7,37]]) {
+        const f = r.frameAt(index);
+        assert.deepEqual([f.expanded,f.checkedCells,f.cellChecks],[expansions,unique,reads]);
+    }
 });

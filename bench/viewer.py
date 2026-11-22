@@ -84,7 +84,8 @@ def episode_spec(form):
 
 
 class Episode:
-    def __init__(self, key, output):
+    def __init__(self, key, output, state_steps=False):
+        self.state_steps = state_steps
         self.key = key
         self.output = output
         self.lock = threading.Lock()
@@ -102,7 +103,7 @@ class Episode:
         with self.lock:
             if self.cancelled:
                 raise InterruptedError()
-            self.engine = Engine(*args, trace=True)
+            self.engine = Engine(*args, trace=True, state_steps=self.state_steps)
         try:
             with self.engine as engine:
                 yield engine
@@ -201,7 +202,7 @@ class Handler(BaseHTTPRequestHandler):
             spec = episode_spec(form)
         except (KeyError, ValueError, TypeError, OverflowError) as err:
             return self.json({"error": str(err)}, 400)
-        job = Episode(key, self.wfile)
+        job = Episode(key, self.wfile, state_steps=form.get("state_steps") is True)
         self.server.replace(slot, job)
         try:
             self.send_response(200)
