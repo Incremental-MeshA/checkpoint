@@ -1,10 +1,12 @@
 import heapq
 import itertools
+import json
 import random
 import tempfile
 import unittest
 from pathlib import Path
 
+from bench.data import DATA
 from bench.engine import Engine
 from bench.navigation import CONTROLS, changes, primitives, read_grid
 
@@ -230,6 +232,45 @@ class Planners(unittest.TestCase):
                 blocked.update(block)
                 queries.append((pose, block, clear))
             self.check_sequence(path,CONTROLS,goal,queries)
+
+    def test_dstar_replays_berlin_visibility_requests(self):
+        # Observations from full-pinned/visibility-25, with costs checked by lattice A*.
+        fixtures = Path(__file__).with_name("fixtures")
+        for case in ("Berlin_2_512-L220-dstar_lite-mesh-r0", "Berlin_2_512-L275-dstar_lite-mesh-r2"):
+            header, *queries = map(json.loads, (fixtures / (case + ".jsonl")).read_text().splitlines())
+            with self.subTest(case=case), Engine(DATA / (header["map"] + ".map"), CONTROLS,
+                                                  "mesh", "dstar_lite", header["goal"]) as engine:
+                engine.receive()
+                for event, query in enumerate(queries):
+                    with self.subTest(event=event):
+                        answer = engine.query(query["pose"], query["block"], query["clear"])
+                        cost = query["cost"]
+                        self.assertEqual(answer["outcome"], "no_path" if cost is None else "found")
+                        self.assertEqual(answer["cost"], cost)
+
+    def test_dstar_repairs_a_prefix_after_collinear_start_moves(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "turn.map"
+            controls = Path(tmp) / "controls.txt"
+            grid_file(path, 16, 10)
+            direct = [(x, 0) for x in range(5)]
+            detour = [(0, 0)] + [(x, 1) for x in range(5)] + [(4, 0)]
+            controls.write_text(primitive(1, 0, 0, direct) + primitive(2, 0, 0, detour))
+
+            start, goal = (10, 7, 0), (14, 7, 0)
+            blocked = 7 * 16 + 13
+            with Engine(path, controls, "mesh", "dstar_lite", goal) as engine:
+                engine.receive()
+                self.assertEqual(engine.query(start)["route"], [1])
+                # Heading 1 has no outgoing motion. The blocked prefix stays in
+                # OPEN while the start moves back in three collinear steps.
+                for i in (3, 2, 1):
+                    pose = (start[0] - 3*i, start[1] - 2*i, 1)
+                    result = engine.query(pose, [blocked] if i == 3 else [])
+                    self.assertEqual(result["outcome"], "no_path")
+                result = engine.query(start)
+                self.assertEqual((result["cost"], result["route"]), (6, [2]))
+                self.assertEqual(engine.query(start, [], [blocked])["route"], [1])
 
     def test_dstar_retains_successor_order_on_equal_costs(self):
         # An equal-cost edge reopens after the other one has become the cached best.
