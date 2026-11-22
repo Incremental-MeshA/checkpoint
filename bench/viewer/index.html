@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>car16 · Path planning viewer</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="/viewer.css">
+<header>
+  <div class="modes" role="group" aria-label="View mode">
+    <button type="button" id="single" aria-pressed="true">Single map</button>
+    <button type="button" id="compare" aria-pressed="false">Side by side</button>
+  </div>
+</header>
+<main>
+<aside><form id="settings">
+  <h1>Episode settings</h1>
+  <fieldset><legend>Map and task</legend>
+    <label>Map<select id="map"></select></label>
+    <label>Start and goal<select id="task"></select></label>
+    <div id="manual" hidden>
+      <div class="pair"><button type="button" id="setStart">Set start</button><button type="button" id="setGoal">Set goal</button></div>
+      <div class="pair"><label>Start heading<select id="startH"></select></label><label>Goal heading<select id="goalH"></select></label></div>
+    </div>
+  </fieldset>
+  <fieldset><legend>Scenario</legend>
+    <label>Environment<select id="scenario"></select></label>
+    <div class="pair"><label>Changed cells (%)<input id="percent" type="number" min="0" max="100" step="any" required></label>
+    <label>Seed<input id="seed" type="text" inputmode="numeric" pattern="-?[0-9]+" required></label></div>
+    <label id="radiusField" hidden>Sensor radius (cells)<select id="radius"></select></label>
+  </fieldset>
+  <fieldset><legend id="firstPlanner">Planner</legend>
+    <div class="pair"><label>Algorithm<select id="algorithm"></select></label>
+    <label>Graph<select id="graph"></select></label></div>
+  </fieldset>
+  <fieldset id="secondPlanner" hidden><legend>Right planner</legend>
+    <div class="pair"><label>Algorithm<select id="algorithm2"></select></label>
+    <label>Graph<select id="graph2"></select></label></div>
+  </fieldset>
+  <label class="check" title="Step through the candidate edges of sampled search states"><input type="checkbox" id="edges">Animate edge checks</label>
+  <button class="primary" id="run" disabled>Run</button>
+  <p role="alert" id="error"></p>
+</form></aside>
+<section class="workspace" aria-label="Map and playback">
+  <div class="maphead"><div><h2 id="mapTitle">Map</h2><small id="dimensions"></small></div>
+    <label id="worldField" class="check" hidden><input type="checkbox" id="world">Show actual map</label>
+    <div class="tools"><button id="out" aria-label="Zoom out">−</button><button id="in" aria-label="Zoom in">+</button>
+    <button id="fit" title="Fit the entire map in view">Fit map</button><button id="focus" title="Fit start and goal in view">Fit task</button></div>
+  </div>
+  <output id="hint" hidden></output>
+  <div id="maps">
+    <section class="panel">
+      <h3 id="titleLeft" hidden></h3>
+      <div class="viewport"><canvas id="mapView" aria-label="First planner’s map"></canvas></div>
+      <div class="status"><strong id="phase" role="status">Preparing map</strong><span id="stats"></span></div>
+      <div class="legend" id="legend" aria-label="Map legend"></div>
+    </section>
+    <section class="panel" id="rightPanel" hidden>
+      <h3 id="titleRight"></h3>
+      <div class="viewport"><canvas id="mapRight" aria-label="Second planner’s map"></canvas></div>
+      <div class="status"><strong id="phaseRight" role="status"></strong><span id="statsRight"></span></div>
+      <div class="legend" id="legendRight" aria-label="Right map legend"></div>
+    </section>
+  </div>
+  <input id="timeline" type="range" value="0" min="0" max="0" aria-label="Episode frame" disabled>
+  <div class="transport"><button id="play" disabled>Play</button>
+    <button id="prev" aria-label="Previous frame" disabled>‹</button><button id="next" aria-label="Next frame" disabled>›</button>
+    <button id="replan" disabled>Next replan</button>
+    <select id="speed" aria-label="Playback speed"><option>0.5×</option><option selected>1×</option><option>2×</option><option>4×</option></select>
+  </div>
+</section></main>
+<script type="module" src="/viewer.js"></script>
+</html>
