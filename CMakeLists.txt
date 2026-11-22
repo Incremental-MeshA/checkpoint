@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(mesh_bench LANGUAGES CXX)
 add_executable(planner src/main.cpp src/graph.cpp src/batch.cpp src/changed_edges.cpp
-    algorithms/astar.cpp algorithms/dstar_lite.cpp algorithms/mpgaa.cpp)
+    algorithms/astar.cpp algorithms/dstar_lite.cpp algorithms/mpgaa.cpp algorithms/mpgaa_prefix.cpp)
 target_compile_features(planner PRIVATE cxx_std_17)
 if(MINGW)
     get_filename_component(mingw_bin "${CMAKE_CXX_COMPILER}" DIRECTORY)

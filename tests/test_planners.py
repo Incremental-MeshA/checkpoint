@@ -9,6 +9,7 @@ from bench.engine import Engine
 from bench.navigation import CONTROLS, changes, primitives, read_grid
 
 VARIANTS = list(itertools.product(("astar", "dstar_lite", "mpgaa"), ("lattice", "mesh")))
+VARIANTS.extend((algo, "mesh") for algo in ("mpgaa_local", "mpgaa_chain", "mpgaa_local_chain"))
 UNIT = 1 << 52
 
 

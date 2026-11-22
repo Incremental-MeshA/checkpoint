@@ -96,6 +96,11 @@ def run(args):
     out.mkdir(parents=True, exist_ok=False)
     metadata = {**provenance(), "profile": args.profile, "percent": percent, "budget_seconds": seconds,
                 "config": config, "repeats": repeats, "tasks": tasks}
+    variants = [(a,g) for a in ALGORITHMS for g in GRAPHS]
+    if args.prefix_experiment:
+        variants = [("mpgaa","lattice"), ("mpgaa","mesh"), ("mpgaa_local","mesh"),
+                    ("mpgaa_chain","mesh"), ("mpgaa_local_chain","mesh")]
+    metadata["variants"] = variants
     if episode_seconds is not None:
         metadata["episode_budget_seconds"] = episode_seconds
     if params:
@@ -107,7 +112,7 @@ def run(args):
     with (out/"summary.csv").open("w", newline="") as f:
         writer = csv.DictWriter(f, SUMMARY)
         writer.writeheader()
-        for repeat, task, algo, graph in itertools.product(range(repeats), tasks, ALGORITHMS, GRAPHS):
+        for repeat, task, (algo, graph) in itertools.product(range(repeats), tasks, variants):
             seed = seed_for(config["seed"], task["id"], repeat)
             name = f"{task['id']}-{algo}-{graph}-r{repeat}.jsonl"
             row = dict(task=task["id"], map=task["map"], algorithm=algo, graph=graph,
@@ -174,17 +179,18 @@ def compare(path):
     with (path/"summary.csv").open(newline="") as f:
         rows = list(csv.DictReader(f))
     # Matched task/repetition cohorts, including navigation failures in outcome counts.
+    variants = list(dict.fromkeys((r["algorithm"], r["graph"]) for r in rows))
     by_pair = {}
     for row in rows:
         by_pair.setdefault((row["task"], row["repeat"]), []).append(row)
-    paired = [r for group in by_pair.values() if len(group) == 6 and
+    paired = [r for group in by_pair.values() if len(group) == len(variants) and
               all(r["status"] in ("reached", "no_path") for r in group) for r in group]
     visible = bool(rows) and all(row.get("scenario") == "limited_visibility" for row in rows)
     writer = csv.writer(sys.stdout, lineterminator="\n")
     writer.writerow(["algorithm", "graph", "paired", "reached", "no_path", "events",
                      "median_total_ms", "median_replan_sum_ms", "expansions", "expanded_cells_sum", "open_ops", "repair_ops"]
                     + (["radius", "world_updates"] if visible else []))
-    for algo, graph in itertools.product(ALGORITHMS, GRAPHS):
+    for algo, graph in variants:
         group = [r for r in paired if (r["algorithm"],r["graph"]) == (algo,graph)]
         median = lambda key: round(statistics.median(float(r[key]) for r in group), 3) if group else ""
         total = lambda key: sum(int(r[key]) for r in group)
@@ -202,6 +208,7 @@ def main():
     runner = sub.add_parser("run")
     runner.add_argument("--config", type=Path, default=ROOT/"config"/"benchmark.json")
     runner.add_argument("--profile", choices=["quick","long"], default="quick")
+    runner.add_argument("--prefix-experiment", action="store_true", help="Compare MPGAA* controls and three mesh ablations")
     runner.add_argument("--change-percent", type=float)
     runner.add_argument("--radius", type=int, help="Sensor radius in cells from the scenario configuration")
     runner.add_argument("--budget-seconds", type=float)

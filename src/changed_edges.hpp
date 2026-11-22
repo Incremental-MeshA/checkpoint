@@ -17,7 +17,7 @@ class ChangedEdgeIndex {
     std::unordered_map<int, std::unordered_set<Node>> tiles;
 
     int tile_of(Point p) const { return p.y / tile_size * tiles_across + p.x / tile_size; }
-    EdgeChange availability(Point source, Point target, int primitive) const;
+    EdgeChange availability(Point source, Point target, const Arc &arc) const;
 
 public:
     ChangedEdgeIndex(const Graph &graph, WatchedEnd watched);

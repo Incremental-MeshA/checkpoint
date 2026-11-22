@@ -11,6 +11,7 @@ struct QueueOps {
     int64_t insert = 0, pop = 0, change = 0, erase = 0, peek = 0;
 };
 struct Metrics {
+    int64_t local_repair_steps = 0;
     enum Phase { Search, Repair, Seed };
     bool tracing = false;
     struct TraceEvent {
@@ -102,4 +103,4 @@ public:
     virtual Result plan(Node start, const Batch &batch, Metrics &metrics) = 0;
 };
 using Factory = std::unique_ptr<Planner>(Graph &, Node);
-Factory astar, dstar_lite, mpgaa;
+Factory astar, dstar_lite, mpgaa, mpgaa_prefix;

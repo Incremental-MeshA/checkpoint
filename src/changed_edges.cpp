@@ -18,7 +18,10 @@ ChangedEdgeIndex::ChangedEdgeIndex(const Graph &graph, WatchedEnd watched)
                 max_offset.y = std::max(max_offset.y, offset.y);
                 by_offset[type][{offset.x, offset.y}].push_back(i);
             };
-            if (graph.mesh) {
+            if (arc.trace_id >= 0) {
+                for (Point cell : graph.chain_traces[arc.trace_id])
+                    include(cell);
+            } else if (graph.mesh) {
                 include({});
                 include(incoming ? Point{} - arc.delta : arc.delta);
             } else {
@@ -42,7 +45,7 @@ void ChangedEdgeIndex::forget(Node node) {
         tiles.erase(tile);
 }
 
-EdgeChange ChangedEdgeIndex::availability(Point source, Point target, int primitive) const {
+EdgeChange ChangedEdgeIndex::availability(Point source, Point target, const Arc &arc) const {
     const Grid &grid = graph.grid;
     bool was_free = true, now_free = true;
     auto check = [&](Point p) {
@@ -56,11 +59,12 @@ EdgeChange ChangedEdgeIndex::availability(Point source, Point target, int primit
             now_free &= free;
         }
     };
-    if (graph.mesh) {
+    if (graph.mesh && arc.trace_id < 0) {
         check(source);
         check(target);
     } else {
-        for (Point offset : graph.primitives[primitive].trace) {
+        const auto &trace = arc.trace_id >= 0 ? graph.chain_traces[arc.trace_id] : graph.primitives[arc.primitive].trace;
+        for (Point offset : trace) {
             check(source + offset);
             if (!was_free && !now_free)
                 break;
@@ -124,12 +128,12 @@ void ChangedEdgeIndex::visit(const Batch &batch,
                 Point other = p + arc.delta;
                 Point source = incoming ? other : p;
                 Point target = incoming ? p : other;
-                EdgeChange change = availability(source, target, arc.primitive);
+                EdgeChange change = availability(source, target, arc);
                 if (change == EdgeChange::unchanged || (!incoming && change == EdgeChange::closed))
                     return;
                 Node from = incoming ? graph.at(source, arc.type) : node;
                 Node to = incoming ? node : graph.at(target, arc.type);
-                accept(from, {to, arc.cost, arc.primitive, arc.slot}, change);
+                accept(from, {to, arc.cost, arc.primitive, arc.slot, arc.trace_id}, change);
             };
             // In a dense batch each incident arc is cheaper to visit once.
             if (arcs.size() <= region.edits.size()) {

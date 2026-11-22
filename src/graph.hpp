@@ -59,6 +59,7 @@ struct Arc {
     int primitive; // index for a completed primitive, -1 for a mesh prefix
     Cost cost;
     int slot; // Position in the source's outgoing arcs, also on the reverse arc.
+    int trace_id = -1; // Forward footprint of a contracted arc.
 };
 struct Config {
     Point offset; // displacement from the initial cell of this prefix
@@ -70,6 +71,7 @@ struct Edge {
     Cost cost;
     int primitive;
     int slot;
+    int trace_id = -1;
 };
 struct CellCounts {
     int unique = 0;
@@ -141,6 +143,8 @@ class Graph {
     friend class ChangedEdgeIndex;
     bool mesh;
     std::vector<Config> configs;
+    std::vector<std::vector<Point>> chain_traces;
+    void contract_chains();
     double scale = 1;
     void add_arc(int from, int to, Point delta, int primitive);
     Cost distance(Point a, Point b) const;
@@ -149,7 +153,7 @@ class Graph {
 public:
     Grid grid;
     std::vector<Primitive> primitives;
-    Graph(Grid map, std::vector<Primitive> controls, bool mesh);
+    Graph(Grid map, std::vector<Primitive> controls, bool mesh, bool contract = false);
     Node at(Point p, int type) const { return Node(grid.cell(p)) * configs.size() + type; }
     int cell(Node u) const { return int(u / configs.size()); }
     int type(Node u) const { return int(u % configs.size()); }
@@ -163,6 +167,6 @@ public:
     void successors(Node node, std::vector<Edge> &out) const { neighbors(node, false, out); }
     void predecessors(Node node, std::vector<Edge> &out) const { neighbors(node, true, out); }
     Edge edge_from(Node source, int slot) const;
-    bool traversable(Point source, Point target, int primitive) const;
+    bool traversable(Point source, Point target, int primitive, int trace_id = -1) const;
     std::vector<int> decode(Node start, Node goal, const std::vector<Edge> &path) const;
 };

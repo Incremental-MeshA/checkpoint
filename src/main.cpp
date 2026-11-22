@@ -67,9 +67,13 @@ int main(int argc, char **argv) {
         if (kind != "mesh" && kind != "lattice")
             throw std::runtime_error("Unknown graph");
         std::map<std::string, Factory *> factories = {
-            {"astar", astar}, {"dstar_lite", dstar_lite}, {"mpgaa", mpgaa}};
+            {"astar", astar}, {"dstar_lite", dstar_lite}, {"mpgaa", mpgaa},
+            {"mpgaa_local", mpgaa_prefix}, {"mpgaa_chain", mpgaa}, {"mpgaa_local_chain", mpgaa_prefix}};
+        bool contract = algorithm == "mpgaa_chain" || algorithm == "mpgaa_local_chain";
+        if ((contract || algorithm == "mpgaa_local") && kind != "mesh")
+            throw std::invalid_argument("Prefix variants require the mesh graph");
         auto initialized = Clock::now();
-        Graph graph(std::move(grid), std::move(controls), kind == "mesh");
+        Graph graph(std::move(grid), std::move(controls), kind == "mesh", contract);
         auto pose = [&](int x, int y, int heading) {
             if (!graph.grid.contains({x, y}) || heading < 0 || heading >= 16)
                 throw std::runtime_error("Invalid pose");
@@ -135,6 +139,8 @@ int main(int argc, char **argv) {
                       << ",\"repair_cells\":" << m.repair_cells.size()
                       << ",\"batch_seeds\":" << m.batch_seeds << ",\"open\":";
             print_ops(m.open);
+            if (algorithm == "mpgaa_local" || algorithm == "mpgaa_local_chain")
+                std::cout << ",\"local_repair_steps\":" << m.local_repair_steps;
             std::cout << ",\"repair_queue\":";
             print_ops(m.repair);
             if (tracing) {
