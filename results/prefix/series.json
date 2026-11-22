@@ -1,0 +1,175 @@
+{
+  "navigation-0.1": {
+    "binary_sha256": "6df117324ccf47b9f245105d7908fd08eff3033d5f369b8926f8c856b8dbb605",
+    "manifest_sha256": "0b9260076541da1792b285914598e11bbb49eae8775853e130f0d16b18d0de62",
+    "build": [
+      "GNU 15.2.0",
+      "C:/Program Files/JetBrains/CLion 2026.2.3/bin/mingw/bin/c++.exe",
+      "Release  -O3 -DNDEBUG"
+    ],
+    "cpu": "Intel(R) Core(TM) i5-9400F CPU @ 2.90GHz",
+    "os": "Windows-10-10.0.19045-SP0",
+    "profile": "long",
+    "repeats": 3,
+    "episode_budget_seconds": 60.0,
+    "wall_seconds": 120.47786929999711,
+    "outcomes": {
+      "reached": 180
+    }
+  },
+  "navigation-0.5": {
+    "binary_sha256": "6df117324ccf47b9f245105d7908fd08eff3033d5f369b8926f8c856b8dbb605",
+    "manifest_sha256": "0b9260076541da1792b285914598e11bbb49eae8775853e130f0d16b18d0de62",
+    "build": [
+      "GNU 15.2.0",
+      "C:/Program Files/JetBrains/CLion 2026.2.3/bin/mingw/bin/c++.exe",
+      "Release  -O3 -DNDEBUG"
+    ],
+    "cpu": "Intel(R) Core(TM) i5-9400F CPU @ 2.90GHz",
+    "os": "Windows-10-10.0.19045-SP0",
+    "profile": "long",
+    "repeats": 3,
+    "episode_budget_seconds": 60.0,
+    "wall_seconds": 140.58307729999797,
+    "outcomes": {
+      "reached": 180
+    }
+  },
+  "navigation-1": {
+    "binary_sha256": "6df117324ccf47b9f245105d7908fd08eff3033d5f369b8926f8c856b8dbb605",
+    "manifest_sha256": "0b9260076541da1792b285914598e11bbb49eae8775853e130f0d16b18d0de62",
+    "build": [
+      "GNU 15.2.0",
+      "C:/Program Files/JetBrains/CLion 2026.2.3/bin/mingw/bin/c++.exe",
+      "Release  -O3 -DNDEBUG"
+    ],
+    "cpu": "Intel(R) Core(TM) i5-9400F CPU @ 2.90GHz",
+    "os": "Windows-10-10.0.19045-SP0",
+    "profile": "long",
+    "repeats": 3,
+    "episode_budget_seconds": 60.0,
+    "wall_seconds": 137.54483980000077,
+    "outcomes": {
+      "reached": 170,
+      "no_path": 10
+    }
+  },
+  "navigation-10": {
+    "binary_sha256": "6df117324ccf47b9f245105d7908fd08eff3033d5f369b8926f8c856b8dbb605",
+    "manifest_sha256": "0b9260076541da1792b285914598e11bbb49eae8775853e130f0d16b18d0de62",
+    "build": [
+      "GNU 15.2.0",
+      "C:/Program Files/JetBrains/CLion 2026.2.3/bin/mingw/bin/c++.exe",
+      "Release  -O3 -DNDEBUG"
+    ],
+    "cpu": "Intel(R) Core(TM) i5-9400F CPU @ 2.90GHz",
+    "os": "Windows-10-10.0.19045-SP0",
+    "profile": "long",
+    "repeats": 3,
+    "episode_budget_seconds": 60.0,
+    "wall_seconds": 179.6957298999987,
+    "outcomes": {
+      "no_path": 30,
+      "reached": 150
+    }
+  },
+  "navigation-5": {
+    "binary_sha256": "6df117324ccf47b9f245105d7908fd08eff3033d5f369b8926f8c856b8dbb605",
+    "manifest_sha256": "0b9260076541da1792b285914598e11bbb49eae8775853e130f0d16b18d0de62",
+    "build": [
+      "GNU 15.2.0",
+      "C:/Program Files/JetBrains/CLion 2026.2.3/bin/mingw/bin/c++.exe",
+      "Release  -O3 -DNDEBUG"
+    ],
+    "cpu": "Intel(R) Core(TM) i5-9400F CPU @ 2.90GHz",
+    "os": "Windows-10-10.0.19045-SP0",
+    "profile": "long",
+    "repeats": 3,
+    "episode_budget_seconds": 60.0,
+    "wall_seconds": 162.1471015999996,
+    "outcomes": {
+      "no_path": 36,
+      "reached": 144
+    }
+  },
+  "visibility-100": {
+    "binary_sha256": "6df117324ccf47b9f245105d7908fd08eff3033d5f369b8926f8c856b8dbb605",
+    "manifest_sha256": "0b9260076541da1792b285914598e11bbb49eae8775853e130f0d16b18d0de62",
+    "build": [
+      "GNU 15.2.0",
+      "C:/Program Files/JetBrains/CLion 2026.2.3/bin/mingw/bin/c++.exe",
+      "Release  -O3 -DNDEBUG"
+    ],
+    "cpu": "Intel(R) Core(TM) i5-9400F CPU @ 2.90GHz",
+    "os": "Windows-10-10.0.19045-SP0",
+    "profile": "long",
+    "repeats": 3,
+    "episode_budget_seconds": 60.0,
+    "wall_seconds": 452.5990125000026,
+    "outcomes": {
+      "no_path": 57,
+      "timeout": 4,
+      "reached": 299
+    }
+  },
+  "visibility-200": {
+    "binary_sha256": "6df117324ccf47b9f245105d7908fd08eff3033d5f369b8926f8c856b8dbb605",
+    "manifest_sha256": "0b9260076541da1792b285914598e11bbb49eae8775853e130f0d16b18d0de62",
+    "build": [
+      "GNU 15.2.0",
+      "C:/Program Files/JetBrains/CLion 2026.2.3/bin/mingw/bin/c++.exe",
+      "Release  -O3 -DNDEBUG"
+    ],
+    "cpu": "Intel(R) Core(TM) i5-9400F CPU @ 2.90GHz",
+    "os": "Windows-10-10.0.19045-SP0",
+    "profile": "long",
+    "repeats": 3,
+    "episode_budget_seconds": 60.0,
+    "wall_seconds": 448.57465299999603,
+    "outcomes": {
+      "no_path": 57,
+      "timeout": 4,
+      "reached": 299
+    }
+  },
+  "visibility-25": {
+    "binary_sha256": "6df117324ccf47b9f245105d7908fd08eff3033d5f369b8926f8c856b8dbb605",
+    "manifest_sha256": "0b9260076541da1792b285914598e11bbb49eae8775853e130f0d16b18d0de62",
+    "build": [
+      "GNU 15.2.0",
+      "C:/Program Files/JetBrains/CLion 2026.2.3/bin/mingw/bin/c++.exe",
+      "Release  -O3 -DNDEBUG"
+    ],
+    "cpu": "Intel(R) Core(TM) i5-9400F CPU @ 2.90GHz",
+    "os": "Windows-10-10.0.19045-SP0",
+    "profile": "long",
+    "repeats": 3,
+    "episode_budget_seconds": 60.0,
+    "wall_seconds": 492.8855571999957,
+    "outcomes": {
+      "no_path": 56,
+      "timeout": 4,
+      "reached": 300
+    }
+  },
+  "visibility-50": {
+    "binary_sha256": "6df117324ccf47b9f245105d7908fd08eff3033d5f369b8926f8c856b8dbb605",
+    "manifest_sha256": "0b9260076541da1792b285914598e11bbb49eae8775853e130f0d16b18d0de62",
+    "build": [
+      "GNU 15.2.0",
+      "C:/Program Files/JetBrains/CLion 2026.2.3/bin/mingw/bin/c++.exe",
+      "Release  -O3 -DNDEBUG"
+    ],
+    "cpu": "Intel(R) Core(TM) i5-9400F CPU @ 2.90GHz",
+    "os": "Windows-10-10.0.19045-SP0",
+    "profile": "long",
+    "repeats": 3,
+    "episode_budget_seconds": 60.0,
+    "wall_seconds": 618.0518197999991,
+    "outcomes": {
+      "no_path": 56,
+      "timeout": 4,
+      "reached": 300
+    }
+  }
+}

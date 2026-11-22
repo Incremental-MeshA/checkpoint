@@ -1,5 +1,23 @@
 # Инкрементальное планирование на car16
 
+## Эксперимент с деревом префиксов MPGAA*
+
+Ключ `--prefix-experiment` запускает пять вариантов. Контроли — исходный MPGAA* на lattice и mesh. На mesh добавлены `mpgaa_local` (при понижении оценки внутреннего узла сразу переходит к его единственному предшественнику), `mpgaa_chain` (сворачивает неветвящиеся цепочки) и `mpgaa_local_chain` (оба изменения). Для свёрнутого ребра хранятся полный след и исходное число шагов. Отбор изменённых рёбер, проверка сохранённой политики и поиск используют этот след. В журналах локальных вариантов `local_repair_steps` считает переходы к внутреннему предку в обход очереди ремонта.
+
+Пример воспроизведения полного эксперимента в PowerShell после сборки Release:
+
+```powershell
+foreach ($p in '0.1','0.5','1','5','10') {
+    python -m bench run --prefix-experiment --profile long --episode-seconds 60 --change-percent $p --output "runs/prefix-repeat/navigation-$p"
+}
+foreach ($r in 25,50,100,200) {
+    python -m bench run --prefix-experiment --profile long --episode-seconds 60 --config config/visibility.json --radius $r --output "runs/prefix-repeat/visibility-$r"
+}
+python -m bench.prefix_report runs/prefix-repeat results/prefix-repeat
+```
+
+Для повторения с зафиксированной Windows-сборкой укажите путь к ней в `MESH_PLANNER`. Для генерации HTML нужен Matplotlib. В сводке каждая настройка сравнивается на общей выборке пяти вариантов. [Отчёт](results/prefix/timing.html) · [Средние и счётчики](results/prefix/means.csv) · [Исходы](results/prefix/outcomes.csv)
+
 Стенд сравнивает A*, D* Lite и MPGAA* на двух представлениях одного пространства движений. Каждый алгоритм ведёт своего робота к фиксированной целевой позе. Доступны сценарии с полностью известными изменениями и с ограниченной видимостью. В комплект входят 12 карт Moving AI с исходными задачами, авторские примитивы и измерения быстрых серий.
 
 ## Запуск

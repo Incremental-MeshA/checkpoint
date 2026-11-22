@@ -232,6 +232,38 @@ class Planners(unittest.TestCase):
                 queries.append((pose, block, clear))
             self.check_sequence(path,CONTROLS,goal,queries)
 
+    def test_chain_is_one_transition_and_every_interior_cell_can_close_it(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp)/"corridor.map"
+            controls = Path(tmp)/"controls.txt"
+            grid_file(path, 6, 1)
+            controls.write_text(primitive(17,0,0,[(x,0) for x in range(6)]))
+            start, goal = (0,0,0), (5,0,0)
+            for algorithm in ("mpgaa", "mpgaa_chain", "mpgaa_local_chain"):
+                with self.subTest(algorithm=algorithm), Engine(path, controls, "mesh", algorithm, goal) as engine:
+                    engine.receive()
+                    plan = engine.query(start)
+                    self.assertEqual(plan["route"], [17])
+                    self.assertEqual(plan["search_expanded"], 5 if algorithm == "mpgaa" else 1)
+                    for cell in range(1,5):
+                        self.assertEqual(engine.query(start,[cell],[])["outcome"], "no_path")
+                        self.assertEqual(engine.query(start,[],[cell])["route"], [17])
+
+    def test_equal_length_keeps_original_mesh_step_tie_break(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp)/"ties.map"
+            controls = Path(tmp)/"controls.txt"
+            grid_file(path, 4, 3)
+            detour = primitive(1,0,0,[(0,0),(0,1),(1,1),(2,1),(3,1),(3,0)])
+            direct = primitive(2,0,0,[(0,0),(1,0),(2,0),(3,0)])
+            controls.write_text(detour + direct.replace("length is: 3", "length is: 5"))
+            for algorithm in ("mpgaa","mpgaa_local","mpgaa_chain","mpgaa_local_chain"):
+                with self.subTest(algorithm=algorithm), Engine(path, controls, "mesh", algorithm, (3,1,0)) as engine:
+                    engine.receive()
+                    for block, clear, route in [([],[],[2]), ([5],[],[1]), ([],[5],[2])]:
+                        result = engine.query((0,1,0), block, clear)
+                        self.assertEqual((result["route"], result["cost"]), (route, 5))
+
     def test_dstar_retains_successor_order_on_equal_costs(self):
         # An equal-cost edge reopens after the other one has become the cached best.
         with tempfile.TemporaryDirectory() as tmp:
