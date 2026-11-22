@@ -1,0 +1,2 @@
+# Keep the archived inputs byte-identical to inputs.sha256.json.
+inputs/** -text

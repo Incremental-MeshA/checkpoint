@@ -5,12 +5,18 @@ from collections import Counter
 from unittest.mock import patch
 
 from bench.__main__ import clean
-from bench.data import DATA, LOCK, MAPS, digest
+from bench.data import DATA, LOCK, MAPS, ROOT, digest
 from bench.navigation import navigate, primitives, read_grid, seed_for
 from bench.select import MANIFEST
 
 
 class Navigation(unittest.TestCase):
+    def test_pinned_snapshot_matches_original_hashes(self):
+        archive = ROOT / "results" / "full-pinned"
+        for name, expected in json.loads((archive / "inputs.sha256.json").read_text()).items():
+            with self.subTest(file=name):
+                self.assertEqual(digest((archive / "inputs" / name).read_bytes()), expected)
+
     def test_published_inputs(self):
         for name, source in json.loads(LOCK.read_text()).items():
             self.assertEqual(digest((DATA/name).read_bytes()), source["sha256"])
