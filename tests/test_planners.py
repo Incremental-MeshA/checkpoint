@@ -204,7 +204,7 @@ class Planners(unittest.TestCase):
                     results = [engine.query(*q) for q in queries]
                     seeds = [r["batch_seeds"] for r in results]
                     self.assertEqual(seeds[:3], [0,0,0])
-                    if algo in ("astar", "mpgaa_lazy"):
+                    if algo == "astar":
                         self.assertFalse(any(seeds))
                         self.assertFalse(any(r["repair_expanded"] for r in results))
                         continue
@@ -257,27 +257,6 @@ class Planners(unittest.TestCase):
                 blocked.update(block)
                 queries.append((pose, block, clear))
             self.check_sequence(path,CONTROLS,goal,queries)
-
-    def test_lazy_caps_on_unread_labels_and_shared_interior_cells(self):
-        # The cheap primitive visits cells far from its endpoint chord. Treating
-        # an opened cell as the origin or end would overestimate the shortcut.
-        with tempfile.TemporaryDirectory() as tmp:
-            path, controls = Path(tmp)/"cap.map", Path(tmp)/"cap.txt"
-            width = 9
-            grid_file(path, width, 10)
-            trace = [(0,y) for y in range(6)] + [(1,5)] + [(2,y) for y in reversed(range(6))]
-            cheap = primitive(1,0,0,trace).replace("length is: 12", "length is: 2")
-            shared = primitive(2,0,1,trace[:-1] + [(3,1)])
-            slow = primitive(3,0,0,[(0,0),(1,0),(2,0)]).replace("length is: 2", "length is: 4")
-            controls.write_text(cheap + shared + slow)
-            start, goal = (0,1,0), (8,1,0)
-            openings = [6*width+x for x in (1,3,5)]
-            a, b, c = openings
-            queries = [(start, openings, []), (goal, [], [a]), (goal, [], [b]),
-                       (start, [], []), (goal, [a], [c]), (start, [], []),
-                       (start, [], [a]), (start, [b], []), (start, [], [b])]
-            self.assertEqual(self.check_sequence(path, controls, goal, queries),
-                             [14,0,0,10,0,10,8,10,8])
 
     def test_dstar_replays_berlin_visibility_requests(self):
         # Observations from full-pinned/visibility-25, with costs checked by lattice A*.

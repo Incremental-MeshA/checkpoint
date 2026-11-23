@@ -82,8 +82,6 @@ using Factory = std::unique_ptr<Planner>(Graph &graph, Node goal);
 Factory dstar_lite;
 /// Create an MPGAA* planner that reuses paths and heuristic estimates toward goal on graph.
 Factory mpgaa;
-/// MPGAA* with versioned heuristic caps compiled from the mesh footprints.
-Factory mpgaa_lazy;
 /// Contract unbranched mesh chains in graph, then create a D* Lite planner for goal.
 Factory dstar_lite_chain;
 /// Contract unbranched mesh chains in graph, then create an MPGAA* planner for goal.

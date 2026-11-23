@@ -77,7 +77,7 @@ int main(int argc, char **argv) {
         if (kind != "mesh" && kind != "lattice")
             throw std::runtime_error("Unknown graph");
         std::map<std::string, Factory *> factories = {
-            {"dstar_lite", dstar_lite}, {"mpgaa", mpgaa}, {"mpgaa_lazy", mpgaa_lazy},
+            {"dstar_lite", dstar_lite}, {"mpgaa", mpgaa},
             {"dstar_lite_chain", dstar_lite_chain}, {"mpgaa_chain", mpgaa_chain}};
         std::unique_ptr<MeshInfo> mesh_table;
         std::filesystem::path primitives_file(argv[2]);

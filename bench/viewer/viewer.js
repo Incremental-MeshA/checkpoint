@@ -3,7 +3,7 @@ import {MapView} from "./map.js";
 
 const $ = id => document.getElementById(id);
 const names = {astar:"A*", dstar_lite:"D* Lite", mpgaa:"MPGAA*",
-    dstar_lite_chain:"D* Lite (chains)", mpgaa_chain:"MPGAA* (chains)", mpgaa_lazy:"MPGAA* (lazy caps)",
+    dstar_lite_chain:"D* Lite (chains)", mpgaa_chain:"MPGAA* (chains)",
     navigation_replanning:"Fully observed changes", limited_visibility:"Limited visibility"};
 const panels = [
     {slot:"left", canvas:$("mapView"), legend:$("legend"), title:$("titleLeft"), phase:$("phase"),

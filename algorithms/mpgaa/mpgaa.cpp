@@ -1,21 +1,17 @@
 #include "../../src/changed_edges.hpp"
 #include "a_star_search.hpp"
-#include "mesh_caps.hpp"
 
 namespace {
 // Adaptive estimates and cached paths belong to complete poses. Mesh prefixes
 // borrow the estimates of their possible endpoints (Finals). This also lets
 // ReestablishConsistency work on whole primitives without expanding prefix trees.
-struct RepairLabel { HeapSlot q_slot; };
-struct LazyLabel { size_t version = 0; };
-template<bool lazy>
 class MPGAA final : public Planner {
-    struct AdaptiveState : std::conditional_t<lazy, LazyLabel, RepairLabel> {
+    struct AdaptiveState {
         Cost h;
+        HeapSlot q_slot;
     };
     std::vector<Config> pose_arcs;
-    std::unique_ptr<ChangedEdgeIndex> increased_h_index;
-    std::unique_ptr<MeshCaps> caps;
+    ChangedEdgeIndex increased_h_index;
     std::unordered_map<Node, AdaptiveState> adaptive_states;
     std::unordered_map<Node, Edge> next;
     std::vector<double> initial_h_by_cell;
@@ -45,22 +41,14 @@ class MPGAA final : public Planner {
     }
     Cost h(Node s) {
         auto state = adaptive_states.find(s);
-        if (state == adaptive_states.end()) return H(s);
-        if constexpr (lazy) {
-            auto &label = state->second;
-            if (label.version < caps->version()) {
-                label.h = caps->limit(graph.point(s), label.h, H(s), label.version);
-                label.version = caps->version();
-            }
-        }
-        return state->second.h;
+        return state == adaptive_states.end() ? H(s) : state->second.h;
     }
 
     // Algorithm 2, lines 14-22. Propagate decreases from successors to predecessors.
     void ReestablishConsistency(const Batch &batch, Metrics &metrics) {
         auto index_start = Metrics::Clock::now();
         std::unordered_map<Node, Cost> initial_h_decreases;
-        increased_h_index->visit(batch, [&](Node s, Edge edge, EdgeChange) {
+        increased_h_index.visit(batch, [&](Node s, Edge edge, EdgeChange) {
             Cost candidate_h = edge.cost + h(edge.node);
             if (candidate_h < adaptive_states.at(s).h) {
                 auto it = initial_h_decreases.emplace(s, candidate_h).first;
@@ -89,7 +77,7 @@ class MPGAA final : public Planner {
             metrics.record(graph, s_prime, Metrics::Repair);
             Cost h_prime = adaptive_states.at(s_prime).h;
             if (h_prime == graph.forward(s_prime, goal)) {
-                increased_h_index->forget(s_prime);
+                increased_h_index.forget(s_prime);
                 adaptive_states.erase(s_prime); // Q no longer holds this state.
             }
             Point target = graph.point(s_prime);
@@ -186,25 +174,12 @@ class MPGAA final : public Planner {
 
 public:
     MPGAA(Graph &graph, Node s_goal)
-        : Planner(graph, s_goal), initial_h_by_cell(graph.grid.blocked.size(), -1.0) {
-        if constexpr (lazy) {
-            caps = std::make_unique<MeshCaps>(graph, goal);
-        } else {
-            pose_arcs = build_pose_arcs();
-            increased_h_index = std::make_unique<ChangedEdgeIndex>(graph, WatchedEnd::source, &pose_arcs);
-        }
-    }
+        : Planner(graph, s_goal), pose_arcs(build_pose_arcs()),
+          increased_h_index(graph, WatchedEnd::source, &pose_arcs),
+          initial_h_by_cell(graph.grid.blocked.size(), -1.0) {}
 
     Result plan(Node s_start, const Batch &batch, Metrics &metrics) override {
-        if (!batch.clear.empty()) {
-            if constexpr (lazy) {
-                if (!adaptive_states.empty()) {
-                    auto started = Metrics::Clock::now();
-                    caps->add(batch.clear);
-                    metrics.changed_edges_ms = Metrics::since(started);
-                }
-            } else ReestablishConsistency(batch, metrics);
-        }
+        if (!batch.clear.empty()) ReestablishConsistency(batch, metrics);
         if (graph.isolated_endpoint(s_start, goal)) return {};
         AStarSearch astar(s_start, h(s_start), metrics.open);
         std::vector<Node> Closed; // Only full poses receive adaptive h values.
@@ -221,8 +196,7 @@ public:
                         Cost updated_h = f - astar.g(s_prime);
                         if (h(s_prime) < updated_h) {
                             auto [it, inserted] = adaptive_states.try_emplace(s_prime);
-                            if constexpr (lazy) it->second.version = caps->version();
-                            else if (inserted) increased_h_index->watch(s_prime);
+                            if (inserted) increased_h_index.watch(s_prime);
                             it->second.h = updated_h;
                         }
                     }
@@ -251,9 +225,5 @@ public:
 }
 
 std::unique_ptr<Planner> mpgaa(Graph &graph, Node s_goal) {
-    return std::make_unique<MPGAA<false>>(graph, s_goal);
-}
-
-std::unique_ptr<Planner> mpgaa_lazy(Graph &graph, Node s_goal) {
-    return std::make_unique<MPGAA<true>>(graph, s_goal);
+    return std::make_unique<MPGAA>(graph, s_goal);
 }

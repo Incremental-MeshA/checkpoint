@@ -1,5 +1,7 @@
 # Проверка быстрого профиля
 
+[Все восемь вариантов планирования, профиль long](long-all-planners/timing.html) · [3 456 эпизодов](long-all-planners/summary.csv) · [Средние времена на общих задачах](long-all-planners/means.csv) · [Исходы по каждому алгоритму](long-all-planners/outcomes.csv)
+
 [Quick на трёх картах с авторскими mesh A* и lattice A*](quick-paper-baseline/timing.html) · [432 эпизода](quick-paper-baseline/summary.csv) · [Исходы восьми серий](quick-paper-baseline/outcomes.csv) · [Сверка первых маршрутов с отдельной сборкой авторов](quick-paper-baseline/author-check.csv)
 
 [Полный прогон девяти вариантов от 23.11.2026](all-20261123/timing.html) · [4 212 эпизодов](all-20261123/summary.csv) · [Средние времена и ускорения](all-20261123/means.csv) · [Исходы](all-20261123/outcomes.csv) · [Воспроизведение 52 контрольных траекторий](all-20261123/fixed-replay.csv) · [Сборка и данные](all-20261123/inputs.sha256.json)

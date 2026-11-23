@@ -26,8 +26,7 @@ ALGORITHMS = {"astar": ("Repeated A*", "#3a5268"),
 GRAPHS = ("lattice", "mesh")
 ORIGINAL_VARIANTS = [(a, g) for a in ALGORITHMS for g in GRAPHS]
 ALGORITHMS.update({"dstar_lite_chain": ("D* Lite (chains)", "#6d4b93"),
-                   "mpgaa_chain": ("MPGAA* (chains)", "#926a08"),
-                   "mpgaa_lazy": ("MPGAA* (lazy caps)", "#d45b32")})
+                   "mpgaa_chain": ("MPGAA* (chains)", "#926a08")})
 BASES = {"same": "A* on the same graph", "lattice": "Lattice A* for all algorithms"}
 
 

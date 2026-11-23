@@ -21,7 +21,7 @@ from .visibility import INITIAL_PERCENT, PERIOD, navigate_visible
 ALGORITHMS = ["astar", "dstar_lite", "mpgaa"]
 GRAPHS = ["lattice", "mesh"]
 VARIANTS = list(itertools.product(ALGORITHMS, GRAPHS)) + [
-    ("dstar_lite_chain", "mesh"), ("mpgaa_chain", "mesh"), ("mpgaa_lazy", "mesh")
+    ("dstar_lite_chain", "mesh"), ("mpgaa_chain", "mesh")
 ]
 SCENARIOS = {"navigation_replanning": navigate, "limited_visibility": navigate_visible}
 SUMMARY = ["task", "map", "algorithm", "graph", "percent", "repeat", "seed", "status",
@@ -98,7 +98,10 @@ def run(args):
     if not tasks:
         raise ValueError("The profile selected no tasks")
     out = args.output or ROOT / "runs" / datetime.now().strftime("%Y%m%d-%H%M%S-%f")
-    variants = [v for v in VARIANTS if not args.algorithm or v[0] == args.algorithm]
+    variants = [(a, g) for a, g in VARIANTS
+                if (not args.algorithm or a == args.algorithm) and (not args.graph or g == args.graph)]
+    if not variants:
+        raise ValueError(f"{args.algorithm} does not support {args.graph}")
     out.mkdir(parents=True, exist_ok=False)
     metadata = {**provenance(), "profile": args.profile, "percent": percent, "budget_seconds": seconds,
                 "config": config, "variants": variants, "repeats": repeats, "tasks": tasks}
@@ -209,6 +212,7 @@ def main():
     runner = sub.add_parser("run")
     runner.add_argument("--config", type=Path, default=ROOT/"config"/"benchmark.json")
     runner.add_argument("--profile", choices=["quick","long"], default="quick")
+    runner.add_argument("--graph", choices=GRAPHS, help="Run only variants on this graph")
     runner.add_argument("--algorithm", choices=sorted({a for a, _ in VARIANTS}),
                         help="Run only this algorithm on its supported graphs")
     runner.add_argument("--change-percent", type=float)
