@@ -2,759 +2,381 @@
   "selection_seed": 20261122,
   "tasks": [
     {
-      "id": "random512-10-0-L119",
-      "map": "random512-10-0",
-      "line": 119,
+      "id": "Labyrinth-L147",
+      "map": "Labyrinth",
+      "line": 147,
       "start": [
-        123,
-        211,
+        521,
+        951,
         11
       ],
       "goal": [
-        91,
-        236,
-        10
+        556,
+        993,
+        8
       ],
-      "pose_seed": 266474455766254763,
-      "grid_length": 44.11269836,
+      "pose_seed": 404868699388508811,
+      "grid_length": 56.49747467,
       "band": "short",
-      "initial_cost": 47.36772389310391,
-      "initial_moves": 13,
+      "initial_cost": 69.42509239279666,
+      "initial_moves": 14,
       "quick": true
     },
     {
-      "id": "random512-10-0-L210",
-      "map": "random512-10-0",
-      "line": 210,
+      "id": "Labyrinth-L213",
+      "map": "Labyrinth",
+      "line": 213,
       "start": [
-        167,
-        63,
-        1
+        677,
+        276,
+        8
       ],
       "goal": [
-        137,
-        133,
-        11
-      ],
-      "pose_seed": 113793111656979121,
-      "grid_length": 83.59797974,
-      "band": "medium",
-      "initial_cost": 84.64785753019389,
-      "initial_moves": 26,
-      "quick": true
-    },
-    {
-      "id": "random512-10-0-L225",
-      "map": "random512-10-0",
-      "line": 225,
-      "start": [
-        158,
-        79,
-        2
-      ],
-      "goal": [
-        247,
-        83,
+        756,
+        259,
         12
       ],
-      "pose_seed": 108383611521424322,
-      "grid_length": 91.48528137,
-      "band": "long",
-      "initial_cost": 94.01336790048532,
-      "initial_moves": 29,
-      "quick": false
-    },
-    {
-      "id": "random512-10-1-L210",
-      "map": "random512-10-1",
-      "line": 210,
-      "start": [
-        295,
-        372,
-        7
-      ],
-      "goal": [
-        366,
-        344,
-        7
-      ],
-      "pose_seed": 21328741052542583,
-      "grid_length": 82.59797974,
+      "pose_seed": 4360786455637113288,
+      "grid_length": 86.04163055,
       "band": "medium",
-      "initial_cost": 100.6857672063579,
-      "initial_moves": 26,
+      "initial_cost": 92.92388342701602,
+      "initial_moves": 22,
       "quick": true
     },
     {
-      "id": "random512-10-1-L244",
-      "map": "random512-10-1",
-      "line": 244,
+      "id": "Labyrinth-L280",
+      "map": "Labyrinth",
+      "line": 280,
       "start": [
-        175,
-        231,
-        14
+        26,
+        358,
+        13
       ],
       "goal": [
-        244,
-        170,
-        4
-      ],
-      "pose_seed": 728631058430840142,
-      "grid_length": 99.53910522,
-      "band": "long",
-      "initial_cost": 98.42636358060754,
-      "initial_moves": 34,
-      "quick": true
-    },
-    {
-      "id": "random512-10-1-L118",
-      "map": "random512-10-1",
-      "line": 118,
-      "start": [
-        331,
-        91,
-        11
-      ],
-      "goal": [
-        288,
-        103,
-        8
-      ],
-      "pose_seed": 142866834263184011,
-      "grid_length": 47.97056274,
-      "band": "short",
-      "initial_cost": 56.27592682486225,
-      "initial_moves": 18,
-      "quick": false
-    },
-    {
-      "id": "random512-10-2-L241",
-      "map": "random512-10-2",
-      "line": 241,
-      "start": [
-        130,
-        225,
-        14
-      ],
-      "goal": [
-        146,
-        138,
-        6
-      ],
-      "pose_seed": 641397667329263982,
-      "grid_length": 95.04163055,
-      "band": "long",
-      "initial_cost": 104.78197338463671,
-      "initial_moves": 30,
-      "quick": true
-    },
-    {
-      "id": "random512-10-2-L141",
-      "map": "random512-10-2",
-      "line": 141,
-      "start": [
-        96,
-        333,
+        108,
+        424,
         5
       ],
-      "goal": [
-        140,
-        310,
-        14
-      ],
-      "pose_seed": 879592348174018789,
-      "grid_length": 54.11269836,
-      "band": "short",
-      "initial_cost": 61.59668557047906,
-      "initial_moves": 13,
-      "quick": true
-    },
-    {
-      "id": "random512-10-2-L187",
-      "map": "random512-10-2",
-      "line": 187,
-      "start": [
-        250,
-        127,
-        11
-      ],
-      "goal": [
-        296,
-        76,
-        6
-      ],
-      "pose_seed": 440261800976609131,
-      "grid_length": 74.74011536,
-      "band": "medium",
-      "initial_cost": 83.95331274645054,
+      "pose_seed": 549546694923530845,
+      "grid_length": 109.33809509,
+      "band": "long",
+      "initial_cost": 111.06916330643533,
       "initial_moves": 27,
-      "quick": false
-    },
-    {
-      "id": "random512-10-3-L128",
-      "map": "random512-10-3",
-      "line": 128,
-      "start": [
-        286,
-        324,
-        2
-      ],
-      "goal": [
-        270,
-        281,
-        11
-      ],
-      "pose_seed": 123841797694714802,
-      "grid_length": 49.62741699,
-      "band": "short",
-      "initial_cost": 61.26168167119068,
-      "initial_moves": 14,
       "quick": true
     },
     {
-      "id": "random512-10-3-L190",
-      "map": "random512-10-3",
-      "line": 190,
+      "id": "Labyrinth-L144",
+      "map": "Labyrinth",
+      "line": 144,
       "start": [
-        346,
-        346,
-        5
-      ],
-      "goal": [
-        414,
-        357,
-        3
-      ],
-      "pose_seed": 379681296263158069,
-      "grid_length": 72.55634918,
-      "band": "medium",
-      "initial_cost": 75.23352760920214,
-      "initial_moves": 14,
-      "quick": true
-    },
-    {
-      "id": "random512-10-3-L276",
-      "map": "random512-10-3",
-      "line": 276,
-      "start": [
-        375,
-        438,
-        11
-      ],
-      "goal": [
-        458,
-        381,
-        10
-      ],
-      "pose_seed": 102578112970559659,
-      "grid_length": 108.95331879,
-      "band": "long",
-      "initial_cost": 115.29395576509063,
-      "initial_moves": 34,
-      "quick": false
-    },
-    {
-      "id": "Berlin_2_512-L220",
-      "map": "Berlin_2_512",
-      "line": 220,
-      "start": [
-        228,
-        39,
-        4
-      ],
-      "goal": [
-        158,
-        1,
-        2
-      ],
-      "pose_seed": 136852757936736804,
-      "grid_length": 85.74011536,
-      "band": "medium",
-      "initial_cost": 96.74011483511529,
-      "initial_moves": 37,
-      "quick": true
-    },
-    {
-      "id": "Berlin_2_512-L275",
-      "map": "Berlin_2_512",
-      "line": 275,
-      "start": [
-        402,
-        373,
-        3
-      ],
-      "goal": [
-        352,
-        285,
-        13
-      ],
-      "pose_seed": 76567291834491859,
-      "grid_length": 108.7106781,
-      "band": "long",
-      "initial_cost": 112.02671275928586,
-      "initial_moves": 48,
-      "quick": true
-    },
-    {
-      "id": "Berlin_2_512-L152",
-      "map": "Berlin_2_512",
-      "line": 152,
-      "start": [
-        110,
-        70,
-        3
-      ],
-      "goal": [
-        69,
-        25,
-        15
-      ],
-      "pose_seed": 15146663511214835,
-      "grid_length": 61.98275604,
-      "band": "short",
-      "initial_cost": 73.51501799952909,
-      "initial_moves": 30,
-      "quick": false
-    },
-    {
-      "id": "Boston_2_512-L250",
-      "map": "Boston_2_512",
-      "line": 250,
-      "start": [
-        106,
-        422,
-        10
-      ],
-      "goal": [
-        55,
-        345,
-        1
-      ],
-      "pose_seed": 866856342059161882,
-      "grid_length": 98.12489166,
-      "band": "long",
-      "initial_cost": 100.0464162828529,
-      "initial_moves": 26,
-      "quick": true
-    },
-    {
-      "id": "Boston_2_512-L128",
-      "map": "Boston_2_512",
-      "line": 128,
-      "start": [
-        356,
-        492,
-        8
-      ],
-      "goal": [
-        406,
-        492,
-        5
-      ],
-      "pose_seed": 595827779059180888,
-      "grid_length": 50.0,
-      "band": "short",
-      "initial_cost": 65.01088647504066,
-      "initial_moves": 12,
-      "quick": true
-    },
-    {
-      "id": "Boston_2_512-L181",
-      "map": "Boston_2_512",
-      "line": 181,
-      "start": [
-        295,
-        403,
-        4
-      ],
-      "goal": [
-        332,
-        347,
-        10
-      ],
-      "pose_seed": 365233153180648868,
-      "grid_length": 71.32590179,
-      "band": "medium",
-      "initial_cost": 75.3475224680913,
-      "initial_moves": 27,
-      "quick": false
-    },
-    {
-      "id": "Milan_0_512-L121",
-      "map": "Milan_0_512",
-      "line": 121,
-      "start": [
-        505,
-        215,
-        11
-      ],
-      "goal": [
-        468,
-        236,
-        13
-      ],
-      "pose_seed": 976984617075093211,
-      "grid_length": 45.6984848,
-      "band": "short",
-      "initial_cost": 52.77103424197356,
-      "initial_moves": 22,
-      "quick": true
-    },
-    {
-      "id": "Milan_0_512-L191",
-      "map": "Milan_0_512",
-      "line": 191,
-      "start": [
-        327,
-        93,
-        9
-      ],
-      "goal": [
-        376,
-        145,
-        8
-      ],
-      "pose_seed": 991201871701490825,
-      "grid_length": 74.63961029,
-      "band": "medium",
-      "initial_cost": 88.25615157936174,
-      "initial_moves": 32,
-      "quick": true
-    },
-    {
-      "id": "Milan_0_512-L238",
-      "map": "Milan_0_512",
-      "line": 238,
-      "start": [
-        486,
-        284,
-        14
-      ],
-      "goal": [
-        427,
-        214,
-        1
-      ],
-      "pose_seed": 186238688078991902,
-      "grid_length": 94.43860016,
-      "band": "long",
-      "initial_cost": 101.51477676323142,
-      "initial_moves": 55,
-      "quick": false
-    },
-    {
-      "id": "Moscow_1_512-L198",
-      "map": "Moscow_1_512",
-      "line": 198,
-      "start": [
-        216,
-        421,
-        6
-      ],
-      "goal": [
-        275,
-        373,
-        6
-      ],
-      "pose_seed": 180285436809794406,
-      "grid_length": 78.88225098,
-      "band": "medium",
-      "initial_cost": 98.40548380613079,
-      "initial_moves": 40,
-      "quick": true
-    },
-    {
-      "id": "Moscow_1_512-L272",
-      "map": "Moscow_1_512",
-      "line": 272,
-      "start": [
-        261,
-        138,
-        2
-      ],
-      "goal": [
-        346,
-        78,
-        13
-      ],
-      "pose_seed": 421184975765348050,
-      "grid_length": 109.85281372,
-      "band": "long",
-      "initial_cost": 106.38130683530248,
-      "initial_moves": 23,
-      "quick": true
-    },
-    {
-      "id": "Moscow_1_512-L121",
-      "map": "Moscow_1_512",
-      "line": 121,
-      "start": [
-        168,
-        73,
-        15
-      ],
-      "goal": [
-        189,
-        112,
-        7
-      ],
-      "pose_seed": 184552282621484927,
-      "grid_length": 47.6984848,
-      "band": "short",
-      "initial_cost": 48.56407721521067,
-      "initial_moves": 17,
-      "quick": false
-    },
-    {
-      "id": "maze512-4-0-L254",
-      "map": "maze512-4-0",
-      "line": 254,
-      "start": [
-        264,
-        136,
-        13
-      ],
-      "goal": [
-        285,
-        79,
-        1
-      ],
-      "pose_seed": 681323352701935133,
-      "grid_length": 102.66904755,
-      "band": "long",
-      "initial_cost": 99.1306516604152,
-      "initial_moves": 28,
-      "quick": true
-    },
-    {
-      "id": "maze512-4-0-L116",
-      "map": "maze512-4-0",
-      "line": 116,
-      "start": [
-        416,
-        152,
-        10
-      ],
-      "goal": [
-        380,
-        167,
-        8
-      ],
-      "pose_seed": 1984751405061751946,
-      "grid_length": 44.55634918,
-      "band": "short",
-      "initial_cost": 42.95586778551767,
-      "initial_moves": 12,
-      "quick": true
-    },
-    {
-      "id": "maze512-4-0-L204",
-      "map": "maze512-4-0",
-      "line": 204,
-      "start": [
-        92,
-        497,
-        15
-      ],
-      "goal": [
-        134,
-        476,
-        0
-      ],
-      "pose_seed": 2286804277313599503,
-      "grid_length": 80.94112549,
-      "band": "medium",
-      "initial_cost": 79.11180197621553,
-      "initial_moves": 22,
-      "quick": false
-    },
-    {
-      "id": "maze512-8-0-L115",
-      "map": "maze512-8-0",
-      "line": 115,
-      "start": [
-        116,
-        272,
-        3
-      ],
-      "goal": [
-        113,
-        236,
-        10
-      ],
-      "pose_seed": 753288038417804707,
-      "grid_length": 46.79898987,
-      "band": "short",
-      "initial_cost": 52.6617922938813,
-      "initial_moves": 17,
-      "quick": true
-    },
-    {
-      "id": "maze512-8-0-L174",
-      "map": "maze512-8-0",
-      "line": 174,
-      "start": [
-        446,
-        170,
-        8
-      ],
-      "goal": [
-        468,
-        211,
-        8
-      ],
-      "pose_seed": 465800302126727560,
-      "grid_length": 69.28427124,
-      "band": "medium",
-      "initial_cost": 91.7465024472553,
-      "initial_moves": 26,
-      "quick": true
-    },
-    {
-      "id": "maze512-8-0-L249",
-      "map": "maze512-8-0",
-      "line": 249,
-      "start": [
-        236,
-        266,
-        7
-      ],
-      "goal": [
-        206,
-        323,
-        15
-      ],
-      "pose_seed": 213461628168428279,
-      "grid_length": 97.76955261,
-      "band": "long",
-      "initial_cost": 122.1389576990471,
-      "initial_moves": 38,
-      "quick": false
-    },
-    {
-      "id": "maze512-16-0-L191",
-      "map": "maze512-16-0",
-      "line": 191,
-      "start": [
-        156,
-        438,
-        7
-      ],
-      "goal": [
-        173,
-        431,
-        14
-      ],
-      "pose_seed": 79745807168702951,
-      "grid_length": 72.48528137,
-      "band": "medium",
-      "initial_cost": 71.47732381372396,
-      "initial_moves": 22,
-      "quick": true
-    },
-    {
-      "id": "maze512-16-0-L247",
-      "map": "maze512-16-0",
-      "line": 247,
-      "start": [
-        410,
-        94,
-        7
-      ],
-      "goal": [
-        491,
-        67,
-        11
-      ],
-      "pose_seed": 227331904677398455,
-      "grid_length": 99.63961029,
-      "band": "long",
-      "initial_cost": 102.67179608090743,
-      "initial_moves": 24,
-      "quick": true
-    },
-    {
-      "id": "maze512-16-0-L142",
-      "map": "maze512-16-0",
-      "line": 142,
-      "start": [
-        263,
-        233,
-        9
-      ],
-      "goal": [
-        281,
         282,
-        3
+        930,
+        1
       ],
-      "pose_seed": 429691907892600121,
-      "grid_length": 56.45584412,
+      "goal": [
+        338,
+        924,
+        9
+      ],
+      "pose_seed": 1001229441828994449,
+      "grid_length": 58.48528137,
       "band": "short",
-      "initial_cost": 60.160651068836,
+      "initial_cost": 64.08335744644994,
       "initial_moves": 19,
       "quick": false
     },
     {
-      "id": "maze512-32-0-L233",
-      "map": "maze512-32-0",
-      "line": 233,
+      "id": "Labyrinth-L218",
+      "map": "Labyrinth",
+      "line": 218,
       "start": [
-        295,
-        475,
-        2
+        185,
+        199,
+        6
       ],
       "goal": [
-        247,
-        450,
+        155,
+        125,
+        11
+      ],
+      "pose_seed": 5479901468191792310,
+      "grid_length": 86.42640686,
+      "band": "medium",
+      "initial_cost": 89.95201782470511,
+      "initial_moves": 24,
+      "quick": false
+    },
+    {
+      "id": "Labyrinth-L284",
+      "map": "Labyrinth",
+      "line": 284,
+      "start": [
+        134,
+        684,
         12
       ],
-      "pose_seed": 681899150300028098,
-      "grid_length": 93.32590179,
+      "goal": [
+        221,
+        707,
+        4
+      ],
+      "pose_seed": 832730236965612364,
+      "grid_length": 114.91168823,
       "band": "long",
-      "initial_cost": 90.92034633413627,
-      "initial_moves": 30,
-      "quick": true
+      "initial_cost": 123.9520012416431,
+      "initial_moves": 54,
+      "quick": false
     },
     {
-      "id": "maze512-32-0-L108",
-      "map": "maze512-32-0",
-      "line": 108,
+      "id": "Moscow_0_512-L177",
+      "map": "Moscow_0_512",
+      "line": 177,
       "start": [
-        115,
-        2,
-        9
+        313,
+        181,
+        6
       ],
       "goal": [
-        73,
-        2,
-        2
+        378,
+        189,
+        1
       ],
-      "pose_seed": 402496522843160105,
-      "grid_length": 42.0,
-      "band": "short",
-      "initial_cost": 59.455696497783805,
-      "initial_moves": 12,
+      "pose_seed": 17612962685679382,
+      "grid_length": 68.3137085,
+      "band": "medium",
+      "initial_cost": 71.95922462677956,
+      "initial_moves": 21,
       "quick": true
     },
     {
-      "id": "maze512-32-0-L212",
-      "map": "maze512-32-0",
-      "line": 212,
+      "id": "Moscow_0_512-L277",
+      "map": "Moscow_0_512",
+      "line": 277,
       "start": [
-        120,
-        387,
+        327,
+        255,
+        3
+      ],
+      "goal": [
+        281,
+        191,
+        10
+      ],
+      "pose_seed": 1313631006925446563,
+      "grid_length": 110.28427124,
+      "band": "long",
+      "initial_cost": 114.07199239923138,
+      "initial_moves": 38,
+      "quick": true
+    },
+    {
+      "id": "Moscow_0_512-L120",
+      "map": "Moscow_0_512",
+      "line": 120,
+      "start": [
+        483,
+        429,
         11
       ],
       "goal": [
-        96,
-        311,
-        2
+        497,
+        465,
+        13
       ],
-      "pose_seed": 126195186277946667,
-      "grid_length": 85.94112549,
+      "pose_seed": 702842730226606555,
+      "grid_length": 46.52691193,
+      "band": "short",
+      "initial_cost": 61.73087287431201,
+      "initial_moves": 13,
+      "quick": true
+    },
+    {
+      "id": "Moscow_0_512-L218",
+      "map": "Moscow_0_512",
+      "line": 218,
+      "start": [
+        165,
+        325,
+        7
+      ],
+      "goal": [
+        205,
+        255,
+        6
+      ],
+      "pose_seed": 3043891139547391591,
+      "grid_length": 86.56854248,
       "band": "medium",
-      "initial_cost": 91.10086857867967,
-      "initial_moves": 30,
+      "initial_cost": 98.21658683513395,
+      "initial_moves": 25,
+      "quick": false
+    },
+    {
+      "id": "Moscow_0_512-L246",
+      "map": "Moscow_0_512",
+      "line": 246,
+      "start": [
+        175,
+        31,
+        1
+      ],
+      "goal": [
+        128,
+        70,
+        14
+      ],
+      "pose_seed": 2307898998007086049,
+      "grid_length": 97.0121933,
+      "band": "long",
+      "initial_cost": 95.39674335932156,
+      "initial_moves": 22,
+      "quick": false
+    },
+    {
+      "id": "Moscow_0_512-L106",
+      "map": "Moscow_0_512",
+      "line": 106,
+      "start": [
+        172,
+        365,
+        12
+      ],
+      "goal": [
+        164,
+        405,
+        15
+      ],
+      "pose_seed": 1682618490827468540,
+      "grid_length": 43.3137085,
+      "band": "short",
+      "initial_cost": 55.67348486759371,
+      "initial_moves": 13,
+      "quick": false
+    },
+    {
+      "id": "32room_000-L239",
+      "map": "32room_000",
+      "line": 239,
+      "start": [
+        436,
+        8,
+        13
+      ],
+      "goal": [
+        424,
+        92,
+        1
+      ],
+      "pose_seed": 458132907140272157,
+      "grid_length": 93.11269836,
+      "band": "long",
+      "initial_cost": 98.41487313556337,
+      "initial_moves": 27,
+      "quick": true
+    },
+    {
+      "id": "32room_000-L145",
+      "map": "32room_000",
+      "line": 145,
+      "start": [
+        468,
+        196,
+        5
+      ],
+      "goal": [
+        500,
+        236,
+        5
+      ],
+      "pose_seed": 138315449849230677,
+      "grid_length": 59.11269836,
+      "band": "short",
+      "initial_cost": 58.03779590417511,
+      "initial_moves": 16,
+      "quick": true
+    },
+    {
+      "id": "32room_000-L196",
+      "map": "32room_000",
+      "line": 196,
+      "start": [
+        274,
+        36,
+        13
+      ],
+      "goal": [
+        206,
+        34,
+        14
+      ],
+      "pose_seed": 99279555446169069,
+      "grid_length": 76.28427124,
+      "band": "medium",
+      "initial_cost": 92.49236177477296,
+      "initial_moves": 26,
+      "quick": true
+    },
+    {
+      "id": "32room_000-L242",
+      "map": "32room_000",
+      "line": 242,
+      "start": [
+        470,
+        41,
+        8
+      ],
+      "goal": [
+        506,
+        70,
+        11
+      ],
+      "pose_seed": 613620946623199672,
+      "grid_length": 97.36753235,
+      "band": "long",
+      "initial_cost": 95.16869755621059,
+      "initial_moves": 21,
+      "quick": false
+    },
+    {
+      "id": "32room_000-L119",
+      "map": "32room_000",
+      "line": 119,
+      "start": [
+        135,
+        47,
+        15
+      ],
+      "goal": [
+        105,
+        59,
+        1
+      ],
+      "pose_seed": 1139463605782350367,
+      "grid_length": 47.59797974,
+      "band": "short",
+      "initial_cost": 53.119510356971105,
+      "initial_moves": 11,
+      "quick": false
+    },
+    {
+      "id": "32room_000-L188",
+      "map": "32room_000",
+      "line": 188,
+      "start": [
+        314,
+        74,
+        1
+      ],
+      "goal": [
+        356,
+        51,
+        4
+      ],
+      "pose_seed": 619512636485885249,
+      "grid_length": 74.55634918,
+      "band": "medium",
+      "initial_cost": 93.51924195176528,
+      "initial_moves": 36,
       "quick": false
     }
   ]

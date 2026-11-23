@@ -13,7 +13,7 @@ from .data import DATA, MAPS, ROOT
 from .engine import Engine
 from .navigation import CONTROLS, primitives, read_grid, write_record
 from .select import MANIFEST
-from .__main__ import ALGORITHMS, GRAPHS, SCENARIOS
+from .__main__ import VARIANTS, GRAPHS, SCENARIOS
 
 ASSETS = Path(__file__).with_name("viewer")
 
@@ -26,7 +26,7 @@ def catalog():
         scenarios[cfg["scenario"]] = {k: cfg[k] for k in
                                       ("seed", "change_percent", "radius", "radii") if k in cfg}
     return dict(maps=MAPS, tasks=json.loads(MANIFEST.read_text())["tasks"],
-                algorithms=ALGORITHMS, graphs=GRAPHS, scenarios=scenarios)
+                algorithms=list(dict.fromkeys(a for a, _ in VARIANTS)), variants=VARIANTS, graphs=GRAPHS, scenarios=scenarios)
 
 
 @lru_cache(maxsize=1)
@@ -53,7 +53,7 @@ def episode_spec(form):
     name = form["map"]
     width, grid = grid_for(name)
     cfg = catalog()["scenarios"].get(form["scenario"])
-    if cfg is None or form["algorithm"] not in ALGORITHMS or form["graph"] not in GRAPHS:
+    if cfg is None or (form["algorithm"], form["graph"]) not in VARIANTS:
         raise ValueError("Select a scenario, algorithm, and graph from the lists.")
     if form["task"] == "manual":
         task = dict(id="manual", map=name)

@@ -3,6 +3,7 @@ import {MapView} from "./map.js";
 
 const $ = id => document.getElementById(id);
 const names = {astar:"A*", dstar_lite:"D* Lite", mpgaa:"MPGAA*",
+    dstar_lite_chain:"D* Lite (chains)", mpgaa_chain:"MPGAA* (chains)", mpgaa_lazy:"MPGAA* (lazy caps)",
     navigation_replanning:"Fully observed changes", limited_visibility:"Limited visibility"};
 const panels = [
     {slot:"left", canvas:$("mapView"), legend:$("legend"), title:$("titleLeft"), phase:$("phase"),
@@ -79,6 +80,12 @@ function cancel() {
 function reset() {
     cancel();
     if (loading || !grid) return;
+    for (const panel of panels) {
+        const allowed = catalog.variants.filter(([algo]) => algo === panel.algorithm.value)
+                                       .map(([, graph]) => graph);
+        for (const option of panel.graph.options) option.disabled = !allowed.includes(option.value);
+        if (!allowed.includes(panel.graph.value)) panel.graph.value = allowed[0];
+    }
     frame=0;
     const visible=comparing ? panels : panels.slice(0,1);
     playback=new Playback(visible.map(panel=>{

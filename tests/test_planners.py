@@ -1,5 +1,4 @@
 import heapq
-import itertools
 import json
 import random
 import tempfile
@@ -10,7 +9,7 @@ from bench.data import DATA
 from bench.engine import Engine
 from bench.navigation import CONTROLS, changes, primitives, read_grid
 
-VARIANTS = list(itertools.product(("astar", "dstar_lite", "mpgaa"), ("lattice", "mesh")))
+from bench.__main__ import VARIANTS
 UNIT = 1 << 52
 
 
@@ -77,7 +76,7 @@ class Planners(unittest.TestCase):
             grid_file(path, 4, 1)
             controls.write_text(primitive(1, 0, 0, [(0,0), (1,0), (2,0), (3,0)]))
             start, goal = (0,0,0), (3,0,0)
-            for graph, reads in [("lattice", 13), ("mesh", 17)]:
+            for graph, reads in [("lattice", 12), ("mesh", 15)]:
                 with self.subTest(graph=graph), Engine(path, controls, graph, "astar", goal, trace=True) as e:
                     e.receive()
                     first = e.query(start)
@@ -205,17 +204,43 @@ class Planners(unittest.TestCase):
                     results = [engine.query(*q) for q in queries]
                     seeds = [r["batch_seeds"] for r in results]
                     self.assertEqual(seeds[:3], [0,0,0])
-                    if algo == "astar":
+                    if algo in ("astar", "mpgaa_lazy"):
                         self.assertFalse(any(seeds))
+                        self.assertFalse(any(r["repair_expanded"] for r in results))
                         continue
                     for r in results[1:3]:
                         self.assertEqual((r["search_expanded"], r["repair_expanded"]), (0,0))
-                    if algo == "mpgaa":
+                    if algo.startswith("mpgaa"):
                         self.assertEqual(seeds[3], 0)  # blocking alone never lowers h
                     if graph == "lattice":
                         self.assertEqual(seeds[4:6], [0,0])  # still blocked after the entire batch
                         self.assertEqual(seeds[-1], 1)  # two opened cells, one source
                     self.assertGreater(seeds[-1], 0)
+
+    def test_single_final_jump_and_interior_chain_edits(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "fork.map"
+            controls = Path(tmp) / "fork.txt"
+            grid_file(path, 9, 4)
+            straight = [(x, 0) for x in range(7)]
+            fork = straight[:5] + [(4, 1), (5, 1)]
+            controls.write_text(primitive(10, 0, 1, straight) + primitive(20, 0, 2, fork))
+            start, goal = (1, 1, 0), (7, 1, 1)
+            fork_end, middle = 2*9 + 6, 9 + 3
+            edits = [(start, [fork_end], []), (start, [middle], []),
+                     (start, [], [middle]), (start, [], [fork_end])]
+            self.assertEqual(self.check_sequence(path, controls, goal, edits), [6, None, 6, 6])
+            expanded = {}
+            for algo in ("dstar_lite", "dstar_lite_chain", "mpgaa", "mpgaa_chain"):
+                with Engine(path, controls, "mesh", algo, goal) as engine:
+                    engine.receive()
+                    result = engine.query(*edits[0])
+                    expanded[algo] = result["search_expanded"]
+                    self.assertEqual(result["route"], [10])
+            # One viable final is resolved at the root without popping any prefix.
+            self.assertEqual(expanded["mpgaa"], 1)
+            self.assertEqual(expanded["mpgaa_chain"], 1)
+            self.assertLess(expanded["dstar_lite_chain"], expanded["dstar_lite"])
 
     def test_seeded_mixed_batches(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -232,6 +257,27 @@ class Planners(unittest.TestCase):
                 blocked.update(block)
                 queries.append((pose, block, clear))
             self.check_sequence(path,CONTROLS,goal,queries)
+
+    def test_lazy_caps_on_unread_labels_and_shared_interior_cells(self):
+        # The cheap primitive visits cells far from its endpoint chord. Treating
+        # an opened cell as the origin or end would overestimate the shortcut.
+        with tempfile.TemporaryDirectory() as tmp:
+            path, controls = Path(tmp)/"cap.map", Path(tmp)/"cap.txt"
+            width = 9
+            grid_file(path, width, 10)
+            trace = [(0,y) for y in range(6)] + [(1,5)] + [(2,y) for y in reversed(range(6))]
+            cheap = primitive(1,0,0,trace).replace("length is: 12", "length is: 2")
+            shared = primitive(2,0,1,trace[:-1] + [(3,1)])
+            slow = primitive(3,0,0,[(0,0),(1,0),(2,0)]).replace("length is: 2", "length is: 4")
+            controls.write_text(cheap + shared + slow)
+            start, goal = (0,1,0), (8,1,0)
+            openings = [6*width+x for x in (1,3,5)]
+            a, b, c = openings
+            queries = [(start, openings, []), (goal, [], [a]), (goal, [], [b]),
+                       (start, [], []), (goal, [a], [c]), (start, [], []),
+                       (start, [], [a]), (start, [b], []), (start, [], [b])]
+            self.assertEqual(self.check_sequence(path, controls, goal, queries),
+                             [14,0,0,10,0,10,8,10,8])
 
     def test_dstar_replays_berlin_visibility_requests(self):
         # Observations from full-pinned/visibility-25, with costs checked by lattice A*.

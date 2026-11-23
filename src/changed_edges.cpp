@@ -1,15 +1,18 @@
 #include "changed_edges.hpp"
 
-ChangedEdgeIndex::ChangedEdgeIndex(const Graph &graph, WatchedEnd watched)
-    : graph(graph), watched(watched), tile_size(graph.mesh ? 4 : 8),
-      tiles_across((graph.grid.width + tile_size - 1) / tile_size), by_offset(graph.configs.size()) {
+/// Precompute which arc traces in graph can touch an edited cell. watched chooses the source or target as origin.
+/// Use the arcs in motion_configs when supplied, otherwise use the graph's native arcs.
+ChangedEdgeIndex::ChangedEdgeIndex(const Graph &graph, WatchedEnd watched, const std::vector<Config> *motion_configs)
+    : graph(graph), configs(motion_configs ? *motion_configs : graph.configurations()), watched(watched), tile_size(graph.mesh && !motion_configs ? 4 : 8),
+      tiles_across((graph.grid.width + tile_size - 1) / tile_size), by_offset(configs.size()) {
     bool incoming = watched == WatchedEnd::target;
-    for (size_t type = 0; type < graph.configs.size(); ++type) {
-        const Config &config = graph.configs[type];
+    for (size_t type = 0; type < configs.size(); ++type) {
+        const Config &config = configs[type];
         const auto &arcs = incoming ? config.in : config.out;
         for (int i = 0; i < static_cast<int>(arcs.size()); ++i) {
             const Arc &arc = arcs[i];
             Point source = incoming ? arc.delta : Point{}; // relative to watched endpoint
+            /// Index the collision-trace offset cell, measured from the forward source, under the watched endpoint.
             auto include = [&](Point cell) {
                 Point offset = Point{} - (source + cell);
                 min_offset.x = std::min(min_offset.x, offset.x);
@@ -18,7 +21,10 @@ ChangedEdgeIndex::ChangedEdgeIndex(const Graph &graph, WatchedEnd watched)
                 max_offset.y = std::max(max_offset.y, offset.y);
                 by_offset[type][{offset.x, offset.y}].push_back(i);
             };
-            if (graph.mesh) {
+            if (arc.trace_id >= 0) {
+                for (Point cell : graph.chain_traces[arc.trace_id])
+                    include(cell);
+            } else if (graph.mesh && arc.trace_id == -1) {
                 include({});
                 include(incoming ? Point{} - arc.delta : arc.delta);
             } else {
@@ -29,10 +35,12 @@ ChangedEdgeIndex::ChangedEdgeIndex(const Graph &graph, WatchedEnd watched)
     }
 }
 
+/// Place node in the tile containing its watched endpoint so nearby edits can find it.
 void ChangedEdgeIndex::watch(Node node) {
     tiles[tile_of(graph.point(node))].insert(node);
 }
 
+/// Remove node from its spatial tile and discard the tile if its last watched endpoint was removed.
 void ChangedEdgeIndex::forget(Node node) {
     auto tile = tiles.find(tile_of(graph.point(node)));
     if (tile == tiles.end())
@@ -42,9 +50,11 @@ void ChangedEdgeIndex::forget(Node node) {
         tiles.erase(tile);
 }
 
-EdgeChange ChangedEdgeIndex::availability(Point source, Point target, int primitive) const {
+/// Compare the forward footprint of arc from source to target in the old and current maps using per-cell edit stamps.
+EdgeChange ChangedEdgeIndex::availability(Point source, Point target, const Arc &arc) const {
     const Grid &grid = graph.grid;
     bool was_free = true, now_free = true;
+    /// Include grid position p in both footprint checks, reconstructing its previous occupancy if this batch edited it.
     auto check = [&](Point p) {
         if (!grid.contains(p)) {
             was_free = now_free = false;
@@ -56,11 +66,12 @@ EdgeChange ChangedEdgeIndex::availability(Point source, Point target, int primit
             now_free &= free;
         }
     };
-    if (graph.mesh) {
+    if (graph.mesh && arc.trace_id == -1) {
         check(source);
         check(target);
     } else {
-        for (Point offset : graph.primitives[primitive].trace) {
+        const auto &trace = arc.trace_id >= 0 ? graph.chain_traces[arc.trace_id] : graph.primitives[arc.primitive].trace;
+        for (Point offset : trace) {
             check(source + offset);
             if (!was_free && !now_free)
                 break;
@@ -71,14 +82,19 @@ EdgeChange ChangedEdgeIndex::availability(Point source, Point target, int primit
     return now_free ? EdgeChange::opened : EdgeChange::closed;
 }
 
+/// Use the changed cells in batch to find candidate arcs. Pass each reportable change to accept
+/// as a forward source node, an outgoing edge and its change in availability.
 void ChangedEdgeIndex::visit(const Batch &batch,
                              const std::function<void(Node, Edge, EdgeChange)> &accept) const {
     if (tiles.empty())
         return;
+    /// Inclusive grid-coordinate bounds for candidate watched endpoints.
     struct Bounds { int left, top, right, bottom; };
+    /// Groups a tile's candidate endpoint bounds with the edited cells that may affect it.
     struct Region { Bounds bounds; std::vector<Point> edits; };
     std::unordered_map<int, Region> regions;
     const Grid &grid = graph.grid;
+    /// Group the row-major indices in cells by tiles whose watched endpoints could have a footprint touching an edit.
     auto include_cells = [&](const std::vector<int> &cells) {
         for (int cell : cells) {
             Point p{cell % grid.width, cell / grid.width};
@@ -118,18 +134,19 @@ void ChangedEdgeIndex::visit(const Batch &batch,
             if (p.x < box.left || p.x > box.right || p.y < box.top || p.y > box.bottom)
                 continue;
             int type = graph.type(node);
-            const Config &config = graph.configs[type];
+            const Config &config = configs[type];
             const auto &arcs = incoming ? config.in : config.out;
+            /// Test the incident arc at this watched endpoint and report it if its availability changed in a tracked direction.
             auto examine = [&](const Arc &arc) {
                 Point other = p + arc.delta;
                 Point source = incoming ? other : p;
                 Point target = incoming ? p : other;
-                EdgeChange change = availability(source, target, arc.primitive);
+                EdgeChange change = availability(source, target, arc);
                 if (change == EdgeChange::unchanged || (!incoming && change == EdgeChange::closed))
                     return;
                 Node from = incoming ? graph.at(source, arc.type) : node;
                 Node to = incoming ? node : graph.at(target, arc.type);
-                accept(from, {to, arc.cost, arc.primitive, arc.slot}, change);
+                accept(from, {to, arc.cost, arc.primitive, arc.slot, arc.trace_id}, change);
             };
             // In a dense batch each incident arc is cheaper to visit once.
             if (arcs.size() <= region.edits.size()) {

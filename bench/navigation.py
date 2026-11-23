@@ -29,7 +29,7 @@ def primitives(filename=CONTROLS):
         if ident in controls:
             raise ValueError("Duplicate primitive ID")
         controls[ident] = (dx, dy, int(fields["start heading (number)"]), end,
-                           float(fields["length is"]), trace)
+                           max(float(fields["length is"]), math.hypot(dx, dy)), trace)
     return controls
 
 

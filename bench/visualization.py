@@ -1,4 +1,4 @@
-"""Build the standalone timing visualization from the six published series."""
+"""Build the standalone timing visualization from matched benchmark series."""
 import argparse
 import base64
 import csv
@@ -24,7 +24,10 @@ METRICS = {"total_ms": "Total time", "replan_ms": "Replanning time"}
 ALGORITHMS = {"astar": ("Repeated A*", "#3a5268"),
               "dstar_lite": ("D* Lite", "#046e72"), "mpgaa": ("MPGAA*", "#b34b23")}
 GRAPHS = ("lattice", "mesh")
-VARIANTS = [(a, g) for a in ALGORITHMS for g in GRAPHS]
+ORIGINAL_VARIANTS = [(a, g) for a in ALGORITHMS for g in GRAPHS]
+ALGORITHMS.update({"dstar_lite_chain": ("D* Lite (chains)", "#6d4b93"),
+                   "mpgaa_chain": ("MPGAA* (chains)", "#926a08"),
+                   "mpgaa_lazy": ("MPGAA* (lazy caps)", "#d45b32")})
 BASES = {"same": "A* on the same graph", "lattice": "Lattice A* for all algorithms"}
 
 
@@ -35,6 +38,7 @@ def number(value, digits):
 def load_series(results):
     """Each point uses exactly the same completed task/repeat/seed keys across variants."""
     data = {}
+    expected_variants = None
     metadata = [(path.parent, json.loads(path.read_text(encoding="utf-8")))
                 for path in sorted(results.glob("*/run.json"))]
     for scenario, (_, _, param, _) in SCENARIOS.items():
@@ -43,7 +47,11 @@ def load_series(results):
             if meta["config"].get("scenario", "navigation_replanning") != scenario:
                 continue
             value = float(meta[param])
-            groups = {variant: {} for variant in VARIANTS}
+            variants = [tuple(v) for v in meta.get("variants", ORIGINAL_VARIANTS)]
+            if expected_variants is not None and set(variants) != expected_variants:
+                raise ValueError(f"Mixed planner cohorts in {results}")
+            expected_variants = set(variants)
+            groups = {variant: {} for variant in variants}
             with (folder / "summary.csv").open(newline="", encoding="utf-8-sig") as stream:
                 for row in csv.DictReader(stream):
                     if row["status"] not in ("reached", "no_path"):
@@ -94,7 +102,8 @@ def make_table(data, metric, base):
     writer.writerow(["Algorithm", "Graph", "Scenario", "Episodes", METRICS[metric] + ", ms",
                      "Speedup (mean A* time / mean algorithm time)", "Baseline"])
     body = []
-    for algo, graph in VARIANTS:
+    first_series = next(iter(data.values()))
+    for algo, graph in next(iter(first_series.values())):
         name, _ = ALGORITHMS[algo]
         cells = []
         for key, series in data.items():
@@ -130,13 +139,13 @@ def make_chart(data, scenario, metric, base):
     title, xlabel, _, _ = SCENARIOS[scenario]
     series = data[scenario]
     xs = list(series)
-    fig = Figure(figsize=(5.65, 3.6), facecolor="white")
+    fig = Figure(figsize=(6.4, 4.15), facecolor="white")
     ax = fig.subplots()
-    fig.subplots_adjust(left=.145, right=.966, bottom=.18, top=.76)
+    fig.subplots_adjust(left=.145, right=.966, bottom=.18, top=.73)
     fig.text(.55, .962, f"{METRICS[metric]} · {title}", fontsize=12, ha="center")
     ys = []
     ax.axhline(1, color="#929fa4", linewidth=1)
-    for algo, graph in VARIANTS:
+    for algo, graph in next(iter(series.values())):
         name, color = ALGORITHMS[algo]
         values = [measurements(series, (algo, graph), metric, base, x)[2] for x in xs]
         ys.extend(values)
@@ -180,7 +189,7 @@ def make_chart(data, scenario, metric, base):
 
 
 def diagnostic_data(series):
-    samples = {v: {"cells": [], "latency": [], "ops": [0]*6} for v in VARIANTS}
+    samples = {v: {"cells": [], "latency": [], "ops": [0]*6} for v in next(iter(series.values()))}
     for point in series.values():
         for variant, episodes in point.items():
             sample = samples[variant]
@@ -231,14 +240,14 @@ def diagnostics(data):
                 axes[0].set_ylabel("Mesh cells")
                 ax.legend(fontsize=8, frameon=False)
             elif kind == "queues":
-                left = [0]*len(VARIANTS)
+                left = [0]*len(samples)
                 for i, (name, color) in enumerate(zip(
                         ("Insert", "Pop", "Change key", "Erase", "Peek", "Repair"),
                         ("#3a5268", "#7794aa", "#a2c1c4", "#aaa39c", "#ddc2aa", "#b34b23"))):
-                    values = [samples[v]["ops"][i]/len(samples[v]["cells"])/1000 for v in VARIANTS]
+                    values = [samples[v]["ops"][i]/len(samples[v]["cells"])/1000 for v in samples]
                     ax.barh(range(len(values)), values, left=left, height=.64, color=color, label=name)
                     left = [a+b for a, b in zip(left, values)]
-                ax.set_yticks(range(6), labels=[f"{ALGORITHMS[a][0]} · {g}" for a,g in VARIANTS])
+                ax.set_yticks(range(len(samples)), labels=[f"{ALGORITHMS[a][0]} · {g}" for a,g in samples])
                 ax.set_xlabel("Queue operations per episode (thousands)")
                 ax.legend(loc="upper center", bbox_to_anchor=(.5,-.22), ncol=3, fontsize=8, frameon=False)
             else:
@@ -268,7 +277,7 @@ def diagnostics(data):
         for ax, (scenario, series) in zip(axes, data.items()):
             title, xlabel, _, _ = SCENARIOS[scenario]
             xs = sorted(series)
-            for algo, graph in VARIANTS:
+            for algo, graph in next(iter(series.values())):
                 name, color = ALGORITHMS[algo]
                 values = [mean(row[field] for row in series[x][algo, graph]) for x in xs]
                 mesh = graph == "mesh"

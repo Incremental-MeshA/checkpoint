@@ -20,6 +20,9 @@ from .visibility import INITIAL_PERCENT, PERIOD, navigate_visible
 
 ALGORITHMS = ["astar", "dstar_lite", "mpgaa"]
 GRAPHS = ["lattice", "mesh"]
+VARIANTS = list(itertools.product(ALGORITHMS, GRAPHS)) + [
+    ("dstar_lite_chain", "mesh"), ("mpgaa_chain", "mesh"), ("mpgaa_lazy", "mesh")
+]
 SCENARIOS = {"navigation_replanning": navigate, "limited_visibility": navigate_visible}
 SUMMARY = ["task", "map", "algorithm", "graph", "percent", "repeat", "seed", "status",
            "scenario", "radius", "moves", "events", "world_updates", "total_ms", "init_ms", "first_ms", "replan_ms", "navigation_ms",
@@ -78,7 +81,9 @@ def run(args):
     repeats = args.repeats if args.repeats is not None else profile["repeats"]
     if not math.isfinite(percent) or not 0 <= percent <= 100 or not math.isfinite(seconds) or seconds <= 0 or repeats < 1:
         raise ValueError("Invalid percent, budget or repeats")
-    episode_seconds = args.episode_seconds
+    if scenario == "navigation_replanning" and "change_percents" in config and percent not in config["change_percents"]:
+        raise ValueError(f"Choose a change percentage from {config['change_percents']}")
+    episode_seconds = args.episode_seconds if args.episode_seconds is not None else config.get("episode_seconds")
     if episode_seconds is not None and (not math.isfinite(episode_seconds) or episode_seconds <= 0):
         raise ValueError("Episode timeout must be a positive finite number")
     # Verify the published lock locally. Missing data must be prepared explicitly.
@@ -93,9 +98,10 @@ def run(args):
     if not tasks:
         raise ValueError("The profile selected no tasks")
     out = args.output or ROOT / "runs" / datetime.now().strftime("%Y%m%d-%H%M%S-%f")
+    variants = [v for v in VARIANTS if not args.algorithm or v[0] == args.algorithm]
     out.mkdir(parents=True, exist_ok=False)
     metadata = {**provenance(), "profile": args.profile, "percent": percent, "budget_seconds": seconds,
-                "config": config, "repeats": repeats, "tasks": tasks}
+                "config": config, "variants": variants, "repeats": repeats, "tasks": tasks}
     if episode_seconds is not None:
         metadata["episode_budget_seconds"] = episode_seconds
     if params:
@@ -107,7 +113,7 @@ def run(args):
     with (out/"summary.csv").open("w", newline="") as f:
         writer = csv.DictWriter(f, SUMMARY)
         writer.writeheader()
-        for repeat, task, algo, graph in itertools.product(range(repeats), tasks, ALGORITHMS, GRAPHS):
+        for repeat, task, (algo, graph) in itertools.product(range(repeats), tasks, variants):
             seed = seed_for(config["seed"], task["id"], repeat)
             name = f"{task['id']}-{algo}-{graph}-r{repeat}.jsonl"
             row = dict(task=task["id"], map=task["map"], algorithm=algo, graph=graph,
@@ -177,14 +183,15 @@ def compare(path):
     by_pair = {}
     for row in rows:
         by_pair.setdefault((row["task"], row["repeat"]), []).append(row)
-    paired = [r for group in by_pair.values() if len(group) == 6 and
+    variants = list(dict.fromkeys((r["algorithm"], r["graph"]) for r in rows))
+    paired = [r for group in by_pair.values() if len(group) == len(variants) and
               all(r["status"] in ("reached", "no_path") for r in group) for r in group]
     visible = bool(rows) and all(row.get("scenario") == "limited_visibility" for row in rows)
     writer = csv.writer(sys.stdout, lineterminator="\n")
     writer.writerow(["algorithm", "graph", "paired", "reached", "no_path", "events",
                      "median_total_ms", "median_replan_sum_ms", "expansions", "expanded_cells_sum", "open_ops", "repair_ops"]
                     + (["radius", "world_updates"] if visible else []))
-    for algo, graph in itertools.product(ALGORITHMS, GRAPHS):
+    for algo, graph in variants:
         group = [r for r in paired if (r["algorithm"],r["graph"]) == (algo,graph)]
         median = lambda key: round(statistics.median(float(r[key]) for r in group), 3) if group else ""
         total = lambda key: sum(int(r[key]) for r in group)
@@ -202,6 +209,8 @@ def main():
     runner = sub.add_parser("run")
     runner.add_argument("--config", type=Path, default=ROOT/"config"/"benchmark.json")
     runner.add_argument("--profile", choices=["quick","long"], default="quick")
+    runner.add_argument("--algorithm", choices=sorted({a for a, _ in VARIANTS}),
+                        help="Run only this algorithm on its supported graphs")
     runner.add_argument("--change-percent", type=float)
     runner.add_argument("--radius", type=int, help="Sensor radius in cells from the scenario configuration")
     runner.add_argument("--budget-seconds", type=float)

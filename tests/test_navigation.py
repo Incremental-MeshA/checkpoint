@@ -23,7 +23,7 @@ class Navigation(unittest.TestCase):
         self.assertEqual(Counter(p[2] for p in primitives().values()), dict.fromkeys(range(16), 24))
         tasks = json.loads(MANIFEST.read_text())["tasks"]
         quick = [t for t in tasks if t["quick"]]
-        self.assertEqual(Counter(t["map"] for t in quick), dict.fromkeys(MAPS, 2))
+        self.assertEqual(Counter(t["map"] for t in quick), dict.fromkeys(MAPS, 3))
         for task in tasks:
             row = (DATA/(task["map"]+".map.scen")).read_text().splitlines()[task["line"]-1].split()
             self.assertEqual(list(map(int, row[4:8])), task["start"][:2]+task["goal"][:2])
@@ -49,7 +49,7 @@ class Navigation(unittest.TestCase):
         for event, request in enumerate(requests):
             self.assertEqual(request["moved"], 10*event)
             block, clear = request["block"], request["clear"]
-            self.assertEqual(len(block), 13107 if event else 0)
+            self.assertEqual(len(block), round(len(grid)*spec["percent"]/200) if event else 0)
             self.assertEqual(len(set(clear)), len(block))
             for c in block:
                 self.assertEqual(grid[c], 0)

@@ -1,11 +1,10 @@
 import io
-import itertools
 import json
 import unittest
 from collections import Counter
 from functools import partial
 
-from bench.__main__ import ALGORITHMS, GRAPHS, SCENARIOS, clean
+from bench.__main__ import VARIANTS, GRAPHS, SCENARIOS, clean
 from bench.engine import Engine
 from bench.navigation import seed_for
 from bench.navigation import CONTROLS, primitives
@@ -29,10 +28,10 @@ class Viewer(unittest.TestCase):
                 self.assertEqual(cached["trace"], [])
 
     def test_traced_episodes_match_native_runs(self):
-        for scenario, task_id in [("navigation_replanning", "random512-10-0-L119"),
-                                  ("limited_visibility", "Berlin_2_512-L152")]:
-            task = next(t for t in catalog()["tasks"] if t["id"] == task_id)
-            for algo, graph in itertools.product(ALGORITHMS, GRAPHS):
+        for scenario in ("navigation_replanning", "limited_visibility"):
+            task = next(t for t in catalog()["tasks"] if t["map"] == "32room_000" and t["band"] == "short")
+            task_id = task["id"]
+            for algo, graph in VARIANTS:
                 with self.subTest(scenario=scenario, algorithm=algo, graph=graph):
                     spec = dict(task=task, algorithm=algo, graph=graph, scenario=scenario,
                                 seed=seed_for(20261122, task_id, 0), percent=0.5)
@@ -79,21 +78,21 @@ class Viewer(unittest.TestCase):
                         counts = Counter(code % 4 for code in trace)
                         self.assertEqual(counts[0], record["search_expanded"])
                         self.assertEqual(counts[1], record["repair_expanded"])
-                        if algo == "dstar_lite":
+                        if algo.startswith("dstar_lite"):
                             self.assertEqual(counts[2], record["batch_seeds"])
                             if record["event"] == 0:
                                 x, y, _ = task["goal"]
                                 self.assertEqual(trace[0] // 8, y * width + x)
                         boundary = record.pop("reuse_from_edge")
                         if boundary is not None:
-                            self.assertEqual(algo, "mpgaa")
+                            self.assertTrue(algo.startswith("mpgaa"))
                             self.assertGreaterEqual(boundary, 0)
                             reused = True
                     self.assertEqual(clean(records), clean(expected))
                     self.assertEqual(len(moves), records[-1]["moves"])
                     if records[-1]["status"] == "reached":
                         self.assertEqual(list(moves[-1][1]), task["goal"])
-                    if algo == "mpgaa":
+                    if algo.startswith("mpgaa"):
                         self.assertTrue(reused)
 
     def test_manual_pose_and_exact_seed(self):

@@ -1,13 +1,28 @@
 {
   "scenario": "navigation_replanning",
   "seed": 20261122,
-  "maps": ["random512-10-0", "random512-10-1", "random512-10-2", "random512-10-3"],
+  "maps": [
+    "Labyrinth",
+    "Moscow_0_512",
+    "32room_000"
+  ],
   "pairs": [],
   "change_percent": 0.1,
-  "change_percents": [0.1, 0.5, 1, 5, 10],
+  "change_percents": [
+    0.1,
+    0.5,
+    1,
+    5
+  ],
   "profiles": {
-    "quick": {"budget_seconds": 300, "repeats": 1},
-    "long": {"budget_seconds": 7200, "repeats": 3}
-  }
+    "quick": {
+      "budget_seconds": 300,
+      "repeats": 1
+    },
+    "long": {
+      "budget_seconds": 7200,
+      "repeats": 3
+    }
+  },
+  "episode_seconds": 60
 }
-

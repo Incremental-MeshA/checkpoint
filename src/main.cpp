@@ -1,16 +1,21 @@
 #include "planner.hpp"
 #include <chrono>
 #include <iomanip>
+#include <filesystem>
+#include "../algorithms/astar/paper/KC_structs.hpp"
 #include <iostream>
 
 using Clock = std::chrono::steady_clock;
+/// Return the number of milliseconds elapsed since the steady-clock timestamp t.
 double elapsed(Clock::time_point t) {
     return std::chrono::duration<double, std::milli>(Clock::now() - t).count();
 }
+/// Write the queue counters in q as a JSON object on standard output.
 void print_ops(const QueueOps &q) {
     std::cout << "{\"insert\":" << q.insert << ",\"pop\":" << q.pop << ",\"change\":" << q.change
               << ",\"erase\":" << q.erase << ",\"peek\":" << q.peek << "}";
 }
+/// Write playback frames for the ordered events in trace. final supplies cumulative counts after the last event.
 void print_cell_frames(const std::vector<Metrics::TraceEvent> &trace, CellCounts final) {
     // Preserve phase boundaries and send exact counts for each displayed frame.
     const size_t batch = (trace.size() + 34) / 35;
@@ -27,6 +32,7 @@ void print_cell_frames(const std::vector<Metrics::TraceEvent> &trace, CellCounts
     }
     std::cout << ']';
 }
+/// Write the neighbor scans sampled by checks, including collision results and available primitive IDs.
 void print_edge_samples(const CellChecks &checks) {
     std::cout << ",\"edge_samples\":[";
     bool first = true;
@@ -55,6 +61,9 @@ void print_edge_samples(const CellChecks &checks) {
     }
     std::cout << ']';
 }
+/// Serve planning requests from standard input and write one JSON result per request. argc counts the entries in argv,
+/// including the executable. argv supplies the map, controls, graph kind, algorithm, goal x/y/heading and optional trace flag.
+/// Return zero at end of input or one if initialization or a request fails.
 int main(int argc, char **argv) {
     try {
         bool state_steps = argc == 9 && std::string(argv[8]) == "--trace-states";
@@ -68,16 +77,25 @@ int main(int argc, char **argv) {
         if (kind != "mesh" && kind != "lattice")
             throw std::runtime_error("Unknown graph");
         std::map<std::string, Factory *> factories = {
-            {"astar", astar}, {"dstar_lite", dstar_lite}, {"mpgaa", mpgaa}};
+            {"dstar_lite", dstar_lite}, {"mpgaa", mpgaa}, {"mpgaa_lazy", mpgaa_lazy},
+            {"dstar_lite_chain", dstar_lite_chain}, {"mpgaa_chain", mpgaa_chain}};
+        std::unique_ptr<MeshInfo> mesh_table;
+        std::filesystem::path primitives_file(argv[2]);
+        if (kind == "mesh" && primitives_file.filename() == "base_control_set.txt") {
+            mesh_table = std::make_unique<MeshInfo>();
+            mesh_table->load((primitives_file.parent_path() / "base_mesh_info.txt").string());
+        }
         auto initialized = Clock::now();
-        Graph graph(std::move(grid), std::move(controls), kind == "mesh");
+        Graph graph(std::move(grid), std::move(controls), kind == "mesh", mesh_table.get());
+        /// Validate column x, row y and the discrete orientation heading, then encode them as a pose node.
         auto pose = [&](int x, int y, int heading) {
             if (!graph.grid.contains({x, y}) || heading < 0 || heading >= 16)
                 throw std::runtime_error("Invalid pose");
             return graph.at({x, y}, heading);
         };
         Node goal = pose(std::stoi(argv[5]), std::stoi(argv[6]), std::stoi(argv[7]));
-        auto planner = factories.at(algorithm)(graph, goal);
+        auto planner = algorithm == "astar" ? paper_astar(graph, goal, mesh_table.get())
+                                            : factories.at(algorithm)(graph, goal);
         CellChecks checks;
         if (tracing)
             graph.grid.checks = &checks;
@@ -86,6 +104,7 @@ int main(int argc, char **argv) {
         int x, y, heading, nblock, nclear;
         while (std::cin >> x >> y >> heading >> nblock >> nclear) {
             Batch batch;
+            /// Read count row-major cell IDs from standard input into the replacement list out.
             auto read_cells = [&](int count, std::vector<int> &out) {
                 if (count < 0 || size_t(count) > graph.grid.blocked.size())
                     throw std::runtime_error("Bad edit count");
@@ -157,9 +176,11 @@ int main(int argc, char **argv) {
                     std::cout << m.trace[i].code;
                 }
                 std::cout << "],\"reuse_from_edge\":";
-                if (m.reused_edges)
-                    std::cout << result.path.size() - m.reused_edges;
-                else
+                if (m.reused_edges) {
+                    int64_t steps = 0;
+                    for (const Edge &edge : result.path) steps += edge.cost.steps;
+                    std::cout << steps - m.reused_edges;
+                } else
                     std::cout << "null";
             }
             std::cout << ",\"route\":[";

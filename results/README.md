@@ -1,5 +1,9 @@
 # Проверка быстрого профиля
 
+[Quick на трёх картах с авторскими mesh A* и lattice A*](quick-paper-baseline/timing.html) · [432 эпизода](quick-paper-baseline/summary.csv) · [Исходы восьми серий](quick-paper-baseline/outcomes.csv) · [Сверка первых маршрутов с отдельной сборкой авторов](quick-paper-baseline/author-check.csv)
+
+[Полный прогон девяти вариантов от 23.11.2026](all-20261123/timing.html) · [4 212 эпизодов](all-20261123/summary.csv) · [Средние времена и ускорения](all-20261123/means.csv) · [Исходы](all-20261123/outcomes.csv) · [Воспроизведение 52 контрольных траекторий](all-20261123/fixed-replay.csv) · [Сборка и данные](all-20261123/inputs.sha256.json)
+
 [Полный прогон на зафиксированной Release-сборке](full-pinned/timing.html) · [CSV по 2 808 эпизодам](full-pinned/summary.csv) · [Исходы по сериям](full-pinned/outcomes.csv) · [SHA-256 сборки, сценариев и данных](full-pinned/inputs.sha256.json)
 
 [Промежуточный прогон на нескольких сборках](full-local-updates/outcomes.csv). Исполняемый файл менялся между эпизодами, поэтому сравнение времени по этим девяти сериям зависит от версии сборки.

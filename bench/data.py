@@ -13,10 +13,7 @@ DATA = ROOT / "data"
 LOCK = ROOT / "config" / "sources.json"
 REVISION = "12574ff03d8d61ac153b4e4224eac2229a9577e1"
 RAW = f"https://raw.githubusercontent.com/PathPlanning/MeshAStar/{REVISION}"
-RANDOM_MAPS = [f"random512-10-{i}" for i in range(4)]
-CITY_MAPS = ["Berlin_2_512", "Boston_2_512", "Milan_0_512", "Moscow_1_512"]
-MAZE_MAPS = [f"maze512-{width}-0" for width in (4, 8, 16, 32)]
-MAPS = RANDOM_MAPS + CITY_MAPS + MAZE_MAPS
+MAPS = ["Labyrinth", "Moscow_0_512", "32room_000"]
 
 
 def digest(data):
@@ -26,11 +23,15 @@ def digest(data):
 def assets():
     yield "base_control_set.txt", f"{RAW}/data/base_control_set.txt", None
     yield "MeshAStar-LICENSE.txt", f"{RAW}/LICENSE.txt", None
+    yield "base_mesh_info.txt", f"{RAW}/data/base_mesh_info.txt", None
     for name in MAPS:
-        group = "street" if name in CITY_MAPS else "maze" if name in MAZE_MAPS else "random"
-        url = f"https://www.movingai.com/benchmarks/{group}/{name}"
-        yield f"{name}.map", url + ".map.zip", f"{name}.map"
-        yield f"{name}.map.scen", url + ".map-scen.zip", f"{name}.map.scen"
+        if name == "32room_000":
+            url = f"https://www.movingai.com/benchmarks/room/{name}"
+            yield f"{name}.map", url + ".map.zip", f"{name}.map"
+            yield f"{name}.map.scen", url + ".map-scen.zip", f"{name}.map.scen"
+        else:
+            for suffix in (".map", ".map.scen"):
+                yield name + suffix, f"{RAW}/maps/{name}{suffix}", None
 
 
 def prepare():

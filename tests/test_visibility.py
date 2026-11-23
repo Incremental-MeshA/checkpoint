@@ -93,7 +93,7 @@ class Visibility(unittest.TestCase):
 
     def test_real_episode_can_replay_world_or_regenerate_it(self):
         task = next(t for t in json.loads(MANIFEST.read_text())["tasks"]
-                    if t["map"] == "maze512-8-0" and t["band"] == "medium")
+                    if t["id"] == "32room_000-L188")
         from bench.navigation import seed_for
         spec = dict(task=task, algorithm="astar", graph="lattice", percent=0.5, radius=25,
                     seed=seed_for(20261122, task["id"], 0), scenario="limited_visibility")

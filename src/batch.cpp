@@ -1,5 +1,6 @@
 #include "planner.hpp"
 
+/// Apply this batch to grid. Check all cell IDs and requested changes before writing the new occupancy values.
 void Batch::apply(Grid &grid) {
     if (block.empty() && clear.empty())
         return;
@@ -8,6 +9,7 @@ void Batch::apply(Grid &grid) {
         std::fill(grid.edit_version.begin(), grid.edit_version.end(), 0);
         ++grid.version;
     }
+    /// Validate the row-major index cell against the requested new occupied flag and stamp it for duplicate detection.
     auto validate = [&](int cell, bool occupied) {
         if (cell < 0 || size_t(cell) >= grid.blocked.size() ||
             grid.edit_version[cell] == grid.version || bool(grid.blocked[cell]) == occupied)
