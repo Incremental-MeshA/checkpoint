@@ -38,6 +38,7 @@
   </fieldset>
   <label>Playback detail<select id="detail">
     <option value="group">Grouped expansions</option>
+    <option value="logic">MPGAA* logical steps</option>
     <option value="state">One state expansion</option>
     <option value="edges">Animate edge checks</option>
   </select></label>
@@ -68,6 +69,7 @@
   <input id="timeline" type="range" value="0" min="0" max="0" aria-label="Episode frame" disabled>
   <div class="transport"><button id="play" disabled>Play</button>
     <button id="prev" aria-label="Previous frame" disabled>‹</button><button id="next" aria-label="Next frame" disabled>›</button>
+    <button id="editCells" disabled>Edit cells</button><button id="applyCells" hidden>Apply and replan</button>
     <button id="replan" disabled>Next replan</button>
     <select id="speed" aria-label="Playback speed"><option>0.5×</option><option selected>1×</option><option>2×</option><option>4×</option></select>
   </div>

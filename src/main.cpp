@@ -67,10 +67,11 @@ void print_edge_samples(const CellChecks &checks) {
 int main(int argc, char **argv) {
     try {
         bool state_steps = argc == 9 && std::string(argv[8]) == "--trace-states";
-        bool tracing = state_steps || (argc == 9 && std::string(argv[8]) == "--trace");
+        bool logical = argc == 9 && std::string(argv[8]) == "--trace-logic";
+        bool tracing = logical || state_steps || (argc == 9 && std::string(argv[8]) == "--trace");
         if (argc != 8 && !tracing)
             throw std::runtime_error(
-                "Usage: planner MAP PRIMITIVES GRAPH ALGORITHM GOAL_X GOAL_Y GOAL_H [--trace|--trace-states]");
+                "Usage: planner MAP PRIMITIVES GRAPH ALGORITHM GOAL_X GOAL_Y GOAL_H [--trace|--trace-states|--trace-logic]");
         Grid grid(argv[1]);
         auto controls = load_primitives(argv[2]);
         std::string kind = argv[3], algorithm = argv[4];
@@ -122,6 +123,7 @@ int main(int argc, char **argv) {
             if (graph.grid.blocked[graph.cell(start)] || graph.grid.blocked[graph.cell(goal)])
                 throw std::runtime_error("Occupied query endpoint");
             Metrics m;
+            m.walkthrough = logical && algorithm == "mpgaa" && kind == "lattice";
             m.tracing = tracing;
             if (tracing)
                 checks.reset(graph.grid.blocked.size());
@@ -158,6 +160,24 @@ int main(int argc, char **argv) {
             std::cout << ",\"repair_queue\":";
             print_ops(m.repair);
             if (tracing) {
+                if (m.walkthrough) {
+                    std::cout << ",\"walkthrough\":{\"started\":" << (m.astar_started ? "true" : "false");
+                    auto sample = [&](const char *name, const Metrics::PhaseSample &v) {
+                        std::cout << ",\"" << name << "\":[" << v.count << ',' << v.x << ',' << v.y << ','
+                                  << v.heading << ',' << v.primitive << ',' << v.before.value() << ',' << v.after.value() << ','
+                                  << v.before.steps << ',' << v.after.steps << ']';
+                    };
+                    sample("opened", m.opened);
+                    sample("lowered", m.lowered);
+                    sample("raised", m.raised);
+                    std::cout << ",\"learned_poses\":[";
+                    for (size_t i = 0; i < m.learned_poses.size(); ++i) {
+                        if (i) std::cout << ',';
+                        std::cout << m.learned_poses[i];
+                    }
+                    std::cout << ']';
+                    std::cout << '}';
+                }
                 print_cell_frames(m.trace, checks.counts);
                 if (state_steps) {
                     std::cout << ",\"state_counts\":[";

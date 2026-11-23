@@ -54,6 +54,10 @@ export class Replay {
         this.controls = controls;
         this.known = new MapLayer(base, width);
         this.actual = spec.scenario === "limited_visibility" ? new MapLayer(base, width) : this.known;
+        if (spec.logical) {
+            this.nextByPose = new Map();
+            this.latestKnown = base.slice();
+        }
         this.moves = [];
         this.replans = new Set();
         this.ends = [0];
@@ -62,7 +66,7 @@ export class Replay {
     }
     add(fields) {
         this.frames.push({...this.frames[this.frames.length - 1], edit: null, candidate: null,
-                          steps: 1, stateCounts: null, ...fields});
+                          learned: null, focus: null, pointers: null, blockedNext: null, storedNext: null, previousNext: null, steps: 1, stateCounts: null, ...fields});
         this.ends.push(this.ends[this.ends.length - 1] + (fields.steps || 1));
     }
     pose(moved) {
@@ -72,16 +76,17 @@ export class Replay {
         switch (r.kind) {
         case "world":
             this.actual.edits.push(r);
+            if (r.manual) break;
             this.add({phase: "World update", actual: this.actual.edits.length, edit: r});
             break;
         case "request": {
+            const blockedNext = this.spec.logical ? this.applyPointerEdits(r) : null;
             this.known.edits.push(r);
-            const current = this.frames[this.frames.length - 1];
             if (r.event) this.replans.add(this.frames.length);
             this.add({phase: r.event ? "Replanning" : "Initial planning request", event: r.event,
                       known: this.known.edits.length, actual: this.actual === this.known ?
-                          this.known.edits.length : current.actual,
-                      edit: r, search: null, count: 0, expanded: 0, checkedCells: 0, cellChecks: 0, cost: null, plan: null, offset: 0});
+                          this.known.edits.length : this.actual.edits.length,
+                      edit: r, blockedNext, search: null, count: 0, expanded: 0, checkedCells: 0, cellChecks: 0, cost: null, plan: null, offset: 0});
             break;
         }
         case "result": {
@@ -95,7 +100,8 @@ export class Replay {
             if (!samples) throw Error("Rebuild the planner to enable edge animation.");
             let sampleIndex = 0;
             let expanded = 0, previousCount = 0;
-            for (const [count, checkedCells, cellChecks] of r.cell_frames) {
+            if (this.spec.logical) this.logicalSearch(r, trace);
+            for (const [count, checkedCells, cellChecks] of this.spec.logical ? [] : r.cell_frames) {
                 const kind = trace[count - 1] % 4;
                 // Each batch is a single phase. Only search and repair expand states.
                 let phase = phases[kind];
@@ -134,6 +140,24 @@ export class Replay {
                 pose = [pose[0] + p.dx, pose[1] + p.dy, p.end];
                 edge += edges;
             }
+            if (this.spec.logical && r.outcome === "found") {
+                const prefix = plan.slice(0, r.reuse_from_edge ?? plan.length);
+                if (prefix.length) {
+                    const previousNext = [];
+                    for (const step of prefix) {
+                        const key = step.pose.join(",");
+                        const old = this.nextByPose.get(key);
+                        if (old && old.id !== step.id) previousNext.push(old);
+                        this.nextByPose.set(key, step);
+                    }
+                    const written = new Set(prefix);
+                    const storedNext = Array.from(this.nextByPose.values()).filter(step => !written.has(step));
+                    this.add({phase: "BuildPath · Write next pointers (" + prefix.length + " writes, " +
+                              previousNext.length + " redirected)", pointers: prefix, storedNext, previousNext});
+                }
+                if (r.reuse_from_edge != null)
+                    this.add({phase: "Follow the verified next chain · Reuse " + (plan.length-prefix.length) + " edges to the goal", plan});
+            }
             this.add({phase: r.outcome === "found" ? "Route found" : outcome.no_path,
                       plan, offset: 0, expanded: r.expanded, checkedCells: r.checked_cells, cellChecks: r.cell_checks, cost: r.cost});
             break;
@@ -150,6 +174,54 @@ export class Replay {
         case "error":
             throw Error(r.error);
         }
+    }
+    applyPointerEdits(edit) {
+        const blocked = new Set(edit.block), affected = [];
+        if (blocked.size) {
+            for (const step of this.nextByPose.values()) {
+                const [x,y] = step.pose;
+                let newlyBlocked = false, wasClear = true;
+                for (const [dx,dy] of this.controls[step.id].trace) {
+                    const cell = (y+dy)*this.known.width+x+dx;
+                    if (this.latestKnown[cell]) { wasClear = false; break; }
+                    if (blocked.has(cell)) newlyBlocked = true;
+                }
+                if (wasClear && newlyBlocked) affected.push(step);
+            }
+        }
+        for (const cell of edit.block) this.latestKnown[cell] = 1;
+        for (const cell of edit.clear) this.latestKnown[cell] = 0;
+        return affected;
+    }
+    logicalSearch(r, trace) {
+        const w = r.walkthrough;
+        if (!w) throw Error("Rebuild the planner to enable MPGAA* logical steps.");
+        const edit = this.known.edits.at(-1);
+        if (edit && (edit.block.length || edit.clear.length)) {
+            const detail = edit.clear.length
+                ? w.opened[0] + " newly traversable edges from poses with learned h"
+                : "Skipped (no cells cleared)";
+            this.add({phase: "Check watched edges · " + detail, edit, focus: w.opened});
+        }
+        // The native recorder splits its batches at every phase boundary.
+        const totals = (repair) => {
+            const row = r.cell_frames.filter(([end]) => (trace[end-1] % 4 !== 0) === repair).at(-1);
+            if (!row) return {};
+            const [count, checkedCells, cellChecks] = row;
+            return {search: trace, count, checkedCells, cellChecks};
+        };
+        const describe = ([count,x,y,d,,before,after,oldSteps,newSteps]) => count ? " · Example (" +
+            [x,y,d].join(", ") + "): " + before.toFixed(2) + " (" + oldSteps + " steps) → " + after.toFixed(2) + " (" + newSteps + " steps)" : "";
+        if (edit?.clear.length)
+            this.add({phase: "Repair h · Propagate decreases to predecessors. " + w.lowered[0] +
+                      " updates" + describe(w.lowered), ...totals(true), expanded:r.repair_expanded, focus:w.lowered});
+        if (!w.started) {
+            this.add({phase: "Endpoint check · An isolated endpoint prevents a search"});
+            return;
+        }
+        this.add({phase: "Forward search · A*", ...totals(false), expanded:r.expanded});
+        if (r.outcome === "found" && r.search_expanded)
+            this.add({phase: "Learn h · h(u) = f(Goal) - g(u)", learned:Uint32Array.from(w.learned_poses)});
     }
     frameAt(index) {
         const segment = segmentAt(this.ends, index);

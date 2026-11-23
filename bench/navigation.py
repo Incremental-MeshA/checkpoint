@@ -81,7 +81,15 @@ def navigate(spec, stream, deadline=None, recorded=None, *, engine_factory=None,
         while True:
             t = time.perf_counter()
             block, clear = [], []
-            if event:
+            manual = spec.get("edits", {}).get(moved)
+            if manual:
+                for c, value in manual.items():
+                    if value and c in (pose[1]*width+pose[0], goal[1]*width+goal[0]):
+                        raise ValueError("The robot and goal must remain free")
+                    if grid[c] != value:
+                        (block if value else clear).append(c)
+                        grid[c] = value
+            elif event:
                 cell = lambda p: p[1] * width + p[0]
                 if recorded is None:
                     block, clear = changes(grid, percent, {cell(goal), cell(pose)},
@@ -120,10 +128,12 @@ def navigate(spec, stream, deadline=None, recorded=None, *, engine_factory=None,
                 moved += 1
                 if on_move:
                     on_move(ident, pose)
+                if moved in spec.get("edits", {}):
+                    break
             if pose == goal:
                 status = "reached"
                 break
-            if len(answer["route"]) <= 10:
+            if len(answer["route"]) <= 10 and moved not in spec.get("edits", {}):
                 raise ValueError("Incomplete route")
             nav_ms += (time.perf_counter()-t)*1000
             event += 1

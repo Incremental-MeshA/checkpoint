@@ -80,11 +80,20 @@ def episode_spec(form):
         if type(form["radius"]) is not int or form["radius"] not in cfg["radii"]:
             raise ValueError("Select a sensor radius from the list.")
         spec["radius"] = form["radius"]
+    edits = form.get("edits", [])
+    if not isinstance(edits, list):
+        raise ValueError("Invalid cell edits")
+    for move, cell, value in edits:
+        if (type(move) is not int or move < 1 or type(cell) is not int or not 0 <= cell < len(grid)
+                or type(value) is not int or value not in (0, 1)):
+            raise ValueError("Invalid cell edit")
+        spec.setdefault("edits", {}).setdefault(move, {})[cell] = value
     return spec
 
 
 class Episode:
-    def __init__(self, key, output, state_steps=False):
+    def __init__(self, key, output, state_steps=False, logical=False):
+        self.logical = logical
         self.state_steps = state_steps
         self.key = key
         self.output = output
@@ -103,7 +112,7 @@ class Episode:
         with self.lock:
             if self.cancelled:
                 raise InterruptedError()
-            self.engine = Engine(*args, trace=True, state_steps=self.state_steps)
+            self.engine = Engine(*args, trace=True, state_steps=self.state_steps, logical=self.logical)
         try:
             with self.engine as engine:
                 yield engine
@@ -202,7 +211,8 @@ class Handler(BaseHTTPRequestHandler):
             spec = episode_spec(form)
         except (KeyError, ValueError, TypeError, OverflowError) as err:
             return self.json({"error": str(err)}, 400)
-        job = Episode(key, self.wfile, state_steps=form.get("state_steps") is True)
+        job = Episode(key, self.wfile, state_steps=form.get("state_steps") is True,
+                      logical=form.get("logical") is True)
         self.server.replace(slot, job)
         try:
             self.send_response(200)

@@ -22,12 +22,12 @@ def executable():
 
 class Engine:
     """One native process per episode, retaining planner state across requests."""
-    def __init__(self, map_file, primitives, graph, algorithm, goal, deadline=None, *, trace=False, state_steps=False):
+    def __init__(self, map_file, primitives, graph, algorithm, goal, deadline=None, *, trace=False, state_steps=False, logical=False):
         self.deadline = deadline
         self.lines = queue.Queue()
         self.process = subprocess.Popen(
             [str(executable()), str(map_file), str(primitives), graph, algorithm, *map(str, goal),
-             *(["--trace-states"] if state_steps else ["--trace"] if trace else [])],
+             *(["--trace-logic"] if logical else ["--trace-states"] if state_steps else ["--trace"] if trace else [])],
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True, bufsize=1)
         def reader():
             for line in self.process.stdout:

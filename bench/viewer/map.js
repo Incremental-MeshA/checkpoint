@@ -1,4 +1,6 @@
 const ink = {
+    "Stored next": "#7079a8", "Blocked next": "#b02f28", "Previous next": "#925426",
+    "Learned h": "#ad3c79", "Next pointer": "#0b7272", "Updated pose": "#bd5023", "Opened primitive": "#16864c",
     "Edge check": "#5543a0", "Blocked edge": "#a33b2e",
     "Primitive trajectory": "#6355ad", "Possible primitives": "#9990bc",
     "Obstacles": "#b7d7b3", "Start": "#146339", "Goal": "#ac4c1c", "Robot": "#17251a",
@@ -149,7 +151,7 @@ export class MapView {
             }
         }
     }
-    draw(replay, f, showWorld) {
+    draw(replay, f, showWorld, pending) {
         const ctx = this.ctx, s=this.scale, names=new Set(["Obstacles"]);
         const layer = showWorld ? replay.actual : replay.known;
         const pose = replay.pose(f.moved);
@@ -159,7 +161,23 @@ export class MapView {
         ctx.translate(this.w/2,this.h/2); ctx.scale(s,s); ctx.translate(-this.center[0],-this.center[1]);
         ctx.imageSmoothingEnabled=false;
         ctx.drawImage(layer.canvas,0,0);
-        this.searchLayer(f,layer,names);
+        if (f.learned) {
+            if (f.learned.length) names.add("Learned h");
+            ctx.fillStyle=ink["Learned h"];
+            for (const code of f.learned) {
+                const cell=Math.floor(code/16), x=cell%layer.width, y=Math.floor(cell/layer.width);
+                ctx.fillRect(x,y,1,1);
+            }
+            if (s>=7) {
+                ctx.beginPath();
+                for (const code of f.learned) {
+                    const cell=Math.floor(code/16), x=cell%layer.width+.5, y=Math.floor(cell/layer.width)+.5;
+                    const a=this.angles[code%16];
+                    ctx.moveTo(x,y); ctx.lineTo(x+.45*Math.cos(a),y+.45*Math.sin(a));
+                }
+                ctx.strokeStyle="white"; ctx.lineWidth=1/s; ctx.stroke();
+            }
+        } else this.searchLayer(f,layer,names);
         if (f.edit && (f.edit.kind !== "world" || showWorld)) {
             for (const [field,name] of [["block","Newly blocked"],["clear","Newly cleared"]]) {
                 if (f.edit[field].length) names.add(name);
@@ -199,6 +217,41 @@ export class MapView {
                 this.curve(step.pose,p,"Reused path",3,from);names.add("Reused path");
             }
         }
+        if (f.storedNext?.length) {
+            names.add("Stored next");
+            for (const step of f.storedNext) {
+                const p=this.controls[step.id];
+                this.curve(step.pose,p,"Stored next",1.6);
+                this.marker([step.pose[0]+p.dx,step.pose[1]+p.dy,p.end],"Stored next");
+            }
+        }
+        for (const [steps,name] of [[f.blockedNext,"Blocked next"],[f.previousNext,"Previous next"]]) {
+            if (!steps?.length) continue;
+            names.add(name);
+            ctx.save();
+            ctx.setLineDash([4/s,2/s]);
+            for (const step of steps) {
+                const p=this.controls[step.id];
+                this.curve(step.pose,p,name,3);
+                this.marker([step.pose[0]+p.dx,step.pose[1]+p.dy,p.end],name);
+            }
+            ctx.restore();
+        }
+        for (const step of f.pointers || []) {
+            const p = this.controls[step.id];
+            this.curve(step.pose,p,"Next pointer",2.5);
+            this.marker([step.pose[0]+p.dx,step.pose[1]+p.dy,p.end],"Next pointer");
+            names.add("Next pointer");
+        }
+        if (f.focus?.[0]) {
+            const [,x,y,d,id] = f.focus;
+            if (id >= 0) {
+                this.curve([x,y],this.controls[id],"Opened primitive",3);
+                names.add("Opened primitive");
+            }
+            this.marker([x,y,d],"Updated pose");
+            names.add("Updated pose");
+        }
         if (f.candidate) {
             const [x,y,tx,ty,id,clear, , ,origin,motions] = f.candidate;
             const name = clear ? "Edge check" : "Blocked edge";
@@ -224,6 +277,11 @@ export class MapView {
             ctx.restore();
             names.add(name);
         } else if (s >= 7) this.inspect(replay,f,names);
+        for (const [cell,value] of pending || []) {
+            const name=value ? "Newly blocked" : "Newly cleared";
+            ctx.fillStyle=ink[name]; names.add(name);
+            ctx.fillRect(cell%layer.width,Math.floor(cell/layer.width),1,1);
+        }
         this.marker(replay.spec.start,"Start");names.add("Start");
         this.marker(replay.spec.goal,"Goal",true);names.add("Goal");
         if(f.event >= 0) {this.marker(pose,"Robot");names.add("Robot");}

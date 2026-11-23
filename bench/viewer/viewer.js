@@ -14,6 +14,7 @@ const panels = [
 let catalog, controls, playback, grid, width, tasks, start, goal;
 let comparing = false;
 let frame = 0, playing = false, active = null, mapVersion = 0, placement = null;
+let draft=null;
 let scheduled = false, timer = 0, loading = false;
 
 function options(id, values, label=value=>names[value] || value) {
@@ -23,6 +24,7 @@ function settings(panel) {
     return {map:$("map").value, task:$("task").value, start:[...start], goal:[...goal],
         scenario:$("scenario").value, algorithm:panel.algorithm.value, graph:panel.graph.value,
         percent:Number($("percent").value), radius:Number($("radius").value), seed:$("seed").value,
+        logical:$("detail").value==="logic" && panel.algorithm.value==="mpgaa" && panel.graph.value==="lattice",
         state_steps:$("detail").value==="state"};
 }
 function update() {
@@ -31,11 +33,12 @@ function update() {
     requestAnimationFrame(()=>{
         scheduled=false;
         if (!playback) return;
+        if (draft && draft.frame!==frame) draft=null;
         const last=playback.last;
         const positions=playback.indicesAt(frame);
         playback.replays.forEach((replay, i) => {
             const panel=panels[i], f=replay.seek(positions[i]);
-            panel.view.draw(replay,f,$("world").checked);
+            panel.view.draw(replay,f,$("world").checked,draft?.lane===i ? draft.cells : null);
             panel.phase.textContent=active && !last ? "Planning route…" : f.phase;
             const cost=f.cost == null ? "—" : f.cost.toLocaleString("en",{maximumFractionDigits:2});
             panel.stats.textContent=f.event < 0 ? "" : "Move "+f.moved+" · Request "+(f.event+1)+
@@ -44,6 +47,10 @@ function update() {
                 (comparing ? " · Path cost "+cost : "");
             panel.stats.title=f.event < 0 ? "" : "Distinct cells checked this request: "+f.checkedCells.toLocaleString("en");
         });
+        $("editCells").disabled=!playback.replays.some((r,i)=>editable(r,r.frameAt(positions[i])));
+        $("editCells").textContent=draft ? "Cancel edits" : "Edit cells";
+        $("applyCells").hidden=!draft;
+        $("applyCells").disabled=!draft?.cells.size;
         $("timeline").max=last; $("timeline").value=frame; $("timeline").disabled=!last;
         $("prev").disabled=!frame; $("next").disabled=frame===last;
         $("play").disabled=!last && !active;
@@ -78,6 +85,7 @@ function cancel() {
     for (const slot of job.slots) post("/api/cancel",{key:job.key,slot}).catch(()=>{});
 }
 function reset() {
+    draft=null;
     cancel();
     if (loading || !grid) return;
     for (const panel of panels) {
@@ -88,6 +96,9 @@ function reset() {
     }
     frame=0;
     const visible=comparing ? panels : panels.slice(0,1);
+    const logicalOption=$("detail").querySelector('[value="logic"]');
+    logicalOption.disabled=!visible.some(panel=>panel.algorithm.value==="mpgaa" && panel.graph.value==="lattice");
+    if (logicalOption.disabled && $("detail").value==="logic") $("detail").value="group";
     playback=new Playback(visible.map(panel=>{
         const spec=settings(panel);
         panel.title.textContent=names[spec.algorithm]+" · "+spec.graph;
@@ -179,10 +190,16 @@ async function run(event) {
     event.preventDefault();
     if (loading || !grid) return;
     setPlacement(null);reset();
-    const job={key:crypto.randomUUID(),controller:new AbortController(),
+    await calculate();
+}
+function editable(replay,f) {
+    return f.phase==="Moving" && replay.pose(f.moved).some((v,i)=>v!==replay.spec.goal[i]);
+}
+async function calculate(branch=null) {
+    const job={branch,key:crypto.randomUUID(),controller:new AbortController(),
                slots:playback.replays.map((_,i)=>panels[i].slot)};
     active=job;
-    if (!playback.replays[0].spec.state_steps) play();
+    if (!branch && !["state","logic"].includes($("detail").value)) play();
     await Promise.all(playback.replays.map((replay,i)=>streamEpisode(job,replay,i)));
     if (active===job) active=null;
     update();
@@ -207,6 +224,14 @@ async function streamEpisode(job,replay,i) {
             }
             parts.push(lines[lines.length-1]);
             playback.extend();
+            if (job.branch) {
+                const {lane,moved}=job.branch;
+                const target=playback.replans.find(index=>{
+                    const f=playback.replays[lane].frameAt(playback.indicesAt(index)[lane]);
+                    return f.phase==="Replanning" && f.moved===moved;
+                });
+                if (target!==undefined) { frame=target; job.branch=null; }
+            }
             update();
         }
         if (active===job && !finished) throw Error("Planning stopped before the episode finished");
@@ -245,6 +270,25 @@ function bind() {
     $("prev").onclick=()=>{pause();frame=Math.max(0,frame-1);update();};
     $("next").onclick=()=>{pause();frame=Math.min(playback.last,frame+1);update();};
     $("replan").onclick=()=>{pause();frame=playback.replans.find(i=>i>frame) ?? frame;update();};
+    $("editCells").onclick=()=>{
+        pause();
+        draft=draft ? null : {frame, lane:null, cells:new Map()};
+        update();
+    };
+    $("applyCells").onclick=()=>{
+        if (!draft?.cells.size) return;
+        const {lane,cells}=draft;
+        const positions=playback.indicesAt(frame);
+        const schedules=playback.replays.map((r,i)=>{
+            const moved=r.frameAt(positions[i]).moved;
+            return (r.spec.edits || []).filter(([step])=>step<=moved);
+        });
+        const moved=playback.replays[lane].frameAt(positions[lane]).moved;
+        for (const [cell,value] of cells) schedules[lane].push([moved,cell,value]);
+        reset();
+        playback.replays.forEach((r,i)=>{r.spec.edits=schedules[i];});
+        calculate({lane,moved});
+    };
     $("play").onclick=()=>{
         if (playing) return pause();
         if (!active && frame===playback.last) frame=0;
@@ -283,6 +327,20 @@ function bindCanvas({canvas,view},i) {
         drag=null;
         if (!click || !playback) return;
         const [x,y]=view.point(e.offsetX,e.offsetY);
+        if (draft) {
+            const replay=playback.replays[i], f=replay.seek(playback.indicesAt(frame)[i]);
+            if (!editable(replay,f) || (draft.lane!==null && draft.lane!==i)) return;
+            const cx=Math.floor(x), cy=Math.floor(y), cell=cy*width+cx;
+            if (cx<0 || cx>=width || cy<0 || cy>=grid.length/width) return;
+            if ([replay.pose(f.moved),goal].some(p=>p[0]===cx && p[1]===cy)) {
+                $("error").textContent="The robot and goal cells must remain free.";return;
+            }
+            draft.lane=i;
+            if (draft.cells.has(cell)) draft.cells.delete(cell);
+            else draft.cells.set(cell,1-($("world").checked ? replay.actual : replay.known).cells[cell]);
+            $("error").textContent="";
+            update();return;
+        }
         if (!placement) {
             view.pick(playback.replays[i].frameAt(playback.indicesAt(frame)[i]),x,y);
             syncCamera(view);return;

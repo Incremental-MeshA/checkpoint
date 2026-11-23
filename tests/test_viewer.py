@@ -27,6 +27,22 @@ class Viewer(unittest.TestCase):
                 self.assertEqual(cached["reuse_from_edge"], 0)
                 self.assertEqual(cached["trace"], [])
 
+    def test_logical_steps_distinguish_learning_and_cache_hit(self):
+        task = catalog()["tasks"][0]
+        with Engine(DATA / (task["map"] + ".map"), CONTROLS, "lattice", "mpgaa",
+                    task["goal"], logical=True) as engine:
+            engine.receive()
+            first = engine.query(task["start"])
+            cached = engine.query(task["start"])
+            learned = first["walkthrough"]["learned_poses"]
+            self.assertEqual(len(learned), first["walkthrough"]["raised"][0])
+            self.assertEqual(cached["walkthrough"]["learned_poses"], [])
+            self.assertTrue(first["walkthrough"]["started"])
+            self.assertGreater(first["walkthrough"]["raised"][0], 0)
+            self.assertEqual(cached["route"], first["route"])
+            self.assertEqual(cached["reuse_from_edge"], 0)
+            self.assertEqual(cached["walkthrough"]["raised"][0], 0)
+
     def test_traced_episodes_match_native_runs(self):
         for scenario in ("navigation_replanning", "limited_visibility"):
             task = next(t for t in catalog()["tasks"] if t["map"] == "32room_000" and t["band"] == "short")

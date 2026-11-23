@@ -57,3 +57,29 @@ test("single expansions merge across unequal batches and rewind with exact count
         assert.deepEqual([f.expanded,f.checkedCells,f.cellChecks],[expansions,unique,reads]);
     }
 });
+
+test("blocking an interior trace cell marks the cached pointer until BuildPath redirects it", () => {
+    const origin = [0,0,0];
+    const r = Object.assign(Object.create(Replay.prototype), {
+        spec:{logical:true,start:origin,graph:"lattice"}, moves:[], frames:[{}], ends:[0],
+        replans:new Set(), known:{width:4,edits:[]}, latestKnown:new Uint8Array(16),
+        controls:{1:{dx:2,dy:0,end:0,trace:[[0,0],[1,0],[2,0]]},
+                  2:{dx:0,dy:1,end:1,trace:[[0,0],[0,1]]}}, nextByPose:new Map()
+    });
+    r.actual=r.known;
+    const result={kind:"result",outcome:"found",trace:[],cell_frames:[],reuse_from_edge:null,
+                  walkthrough:{started:true,opened:[0],raised:[0]},search_expanded:0};
+    r.record({...result,route:[1,1]});
+    const firstWrite=r.frames.at(-2);
+    r.record({kind:"request",event:1,block:[1],clear:[]});
+    const blockedFrame=r.frames.at(-1);
+    assert.deepEqual(blockedFrame.blockedNext.map(s=>s.id),[1]);
+    r.record({...result,route:[2]});
+    const writeFrame=r.frames.at(-2);
+    assert.deepEqual(firstWrite.storedNext,[]);
+    assert.deepEqual(writeFrame.storedNext.map(s=>s.pose),[[2,0,0]]);
+    assert.deepEqual(writeFrame.previousNext.map(s=>s.id),[1]);
+    assert.deepEqual(writeFrame.pointers.map(s=>s.id),[2]);
+    assert.equal(r.nextByPose.get(origin.join(",")).id,2);
+    assert.equal(blockedFrame.blockedNext[0].id,1);
+});

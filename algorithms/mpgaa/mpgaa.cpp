@@ -49,6 +49,8 @@ class MPGAA final : public Planner {
         auto index_start = Metrics::Clock::now();
         std::unordered_map<Node, Cost> initial_h_decreases;
         increased_h_index.visit(batch, [&](Node s, Edge edge, EdgeChange) {
+            if (metrics.walkthrough)
+                metrics.opened.observe(graph, s, graph.primitives[edge.primitive].id, {}, {});
             Cost candidate_h = edge.cost + h(edge.node);
             if (candidate_h < adaptive_states.at(s).h) {
                 auto it = initial_h_decreases.emplace(s, candidate_h).first;
@@ -61,6 +63,8 @@ class MPGAA final : public Planner {
         // Algorithm 2, lines 5-13. Callers check the decrease before insertion.
         // This variant updates h and Q here. Only BuildPath writes next.
         auto InsertState = [&](Node s, Cost candidate_h, AdaptiveState &state) {
+            if (metrics.walkthrough)
+                metrics.lowered.observe(graph, s, -1, state.h, candidate_h);
             state.h = candidate_h;
             Q.set(s, {candidate_h, {}}, state.q_slot, metrics.repair);
         };
@@ -181,6 +185,7 @@ public:
     Result plan(Node s_start, const Batch &batch, Metrics &metrics) override {
         if (!batch.clear.empty()) ReestablishConsistency(batch, metrics);
         if (graph.isolated_endpoint(s_start, goal)) return {};
+        metrics.astar_started = true;
         AStarSearch astar(s_start, h(s_start), metrics.open);
         std::vector<Node> Closed; // Only full poses receive adaptive h values.
         std::unordered_set<Node> invalid_next_path;
@@ -195,6 +200,10 @@ public:
                     for (Node s_prime : Closed) {
                         Cost updated_h = f - astar.g(s_prime);
                         if (h(s_prime) < updated_h) {
+                            if (metrics.walkthrough) {
+                                metrics.raised.observe(graph, s_prime, -1, h(s_prime), updated_h);
+                                metrics.learned_poses.push_back(int64_t(graph.cell(s_prime)) * 16 + graph.type(s_prime));
+                            }
                             auto [it, inserted] = adaptive_states.try_emplace(s_prime);
                             if (inserted) increased_h_index.watch(s_prime);
                             it->second.h = updated_h;

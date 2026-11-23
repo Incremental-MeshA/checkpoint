@@ -96,8 +96,23 @@ def navigate_visible(spec, stream, deadline=None, recorded=None, *, engine_facto
                 write_record(stream, {"kind": "world", "number": number, "moved": moved,
                                       "pose": pose, "block": block, "clear": clear})
                 tick = time.perf_counter()
+            manual = spec.get("edits", {}).get(moved, {})
+            if manual:
+                blocked, cleared = [], []
+                for c, value in manual.items():
+                    if value and c in (pose[1]*width+pose[0], goal[1]*width+goal[0]):
+                        raise ValueError("The robot and goal must remain free")
+                    if actual[c] != value:
+                        actual[c] = value
+                        (blocked if value else cleared).append(c)
+                write_record(stream, dict(kind="world", manual=True, moved=moved, pose=pose,
+                                          block=blocked, clear=cleared))
             block, clear = observe(actual, known, width, pose, radius)
-            if requests == 0 or block or clear:
+            for c, value in manual.items():
+                if known[c] != value:
+                    known[c] = value
+                    (block if value else clear).append(c)
+            if requests == 0 or block or clear or manual:
                 navigation_ms += (time.perf_counter()-tick)*1000
                 write_record(stream, {"kind": "request", "event": requests, "moved": moved,
                                       "pose": pose, "block": block, "clear": clear})

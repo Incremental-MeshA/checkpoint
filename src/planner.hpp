@@ -22,6 +22,20 @@ struct Metrics {
         CellCounts before;
     };
     std::vector<TraceEvent> trace;
+    // One representative primitive or pose per logical phase keeps walkthroughs bounded.
+    struct PhaseSample {
+        int count = 0, x = 0, y = 0, heading = 0, primitive = -1;
+        Cost before{}, after{};
+        void observe(const Graph &graph, Node s, int id, Cost old_value, Cost new_value) {
+            if (count++ != 0) return;
+            Point p = graph.point(s);
+            x = p.x; y = p.y; heading = graph.type(s); primitive = id;
+            before = old_value; after = new_value;
+        }
+    };
+    bool walkthrough = false, astar_started = false;
+    std::vector<int64_t> learned_poses; // row-major cell * 16 + heading
+    PhaseSample opened, lowered, raised;
     int64_t reused_edges = 0;
     /// When tracing is enabled, locate node in graph and record its phase with the current occupancy counters.
     void record(const Graph &graph, Node node, Phase phase) {
