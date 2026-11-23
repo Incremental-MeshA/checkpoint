@@ -1,0 +1,29 @@
+{
+  "episodes": 3456,
+  "planning_requests": 47221,
+  "outcomes": {
+    "reached": 3328,
+    "no_path": 117,
+    "timeout": 11
+  },
+  "replans": 43765,
+  "wall_seconds": 3411.403964500001,
+  "regenerated": [
+    "navigation-0.1/32room_000-L119-astar-lattice-r1.jsonl",
+    "navigation-0.1/32room_000-L119-astar-mesh-r1.jsonl",
+    "navigation-1/32room_000-L119-dstar_lite-lattice-r1.jsonl",
+    "navigation-1/32room_000-L119-dstar_lite-mesh-r1.jsonl",
+    "navigation-1/32room_000-L119-mpgaa-lattice-r2.jsonl",
+    "navigation-0.1/32room_000-L119-mpgaa-mesh-r2.jsonl",
+    "navigation-1/32room_000-L181-dstar_lite_chain-mesh-r1.jsonl",
+    "navigation-0.5/Moscow_0_512-L106-mpgaa_chain-mesh-r1.jsonl",
+    "visibility-50/Moscow_0_512-L192-astar-lattice-r2.jsonl",
+    "visibility-25/Moscow_0_512-L192-astar-mesh-r2.jsonl",
+    "visibility-50/32room_000-L119-dstar_lite-lattice-r1.jsonl",
+    "visibility-50/32room_000-L119-dstar_lite-mesh-r1.jsonl",
+    "visibility-25/Moscow_0_512-L192-mpgaa-lattice-r2.jsonl",
+    "visibility-50/Moscow_0_512-L192-mpgaa-mesh-r2.jsonl",
+    "visibility-50/32room_000-L119-dstar_lite_chain-mesh-r2.jsonl",
+    "visibility-50/Moscow_0_512-L192-mpgaa_chain-mesh-r2.jsonl"
+  ]
+}

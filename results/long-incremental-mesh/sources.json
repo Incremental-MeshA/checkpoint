@@ -1,0 +1,38 @@
+{
+  "base_control_set.txt": {
+    "url": "https://raw.githubusercontent.com/PathPlanning/MeshAStar/12574ff03d8d61ac153b4e4224eac2229a9577e1/data/base_control_set.txt",
+    "sha256": "c271e6ac1adc0c4d52101c86ad0dded54439199f14fe58ee719eee58f2d88a33"
+  },
+  "MeshAStar-LICENSE.txt": {
+    "url": "https://raw.githubusercontent.com/PathPlanning/MeshAStar/12574ff03d8d61ac153b4e4224eac2229a9577e1/LICENSE.txt",
+    "sha256": "941f3562b07a0dff9380ad535bc3081d5a94d1cf1b6213c1d88a9c592f4447ef"
+  },
+  "base_mesh_info.txt": {
+    "url": "https://raw.githubusercontent.com/PathPlanning/MeshAStar/12574ff03d8d61ac153b4e4224eac2229a9577e1/data/base_mesh_info.txt",
+    "sha256": "0e116e2d5c831707db43b35c95e6269fd4314f1ee7cceb108153b78810077a5a"
+  },
+  "Labyrinth.map": {
+    "url": "https://raw.githubusercontent.com/PathPlanning/MeshAStar/12574ff03d8d61ac153b4e4224eac2229a9577e1/maps/Labyrinth.map",
+    "sha256": "2e5ed8814fe5b7fa23a3187573031c4b3ac679556d276ae5ff4e50b1d66b3521"
+  },
+  "Labyrinth.map.scen": {
+    "url": "https://raw.githubusercontent.com/PathPlanning/MeshAStar/12574ff03d8d61ac153b4e4224eac2229a9577e1/maps/Labyrinth.map.scen",
+    "sha256": "e9c100c3073e0198d0453c893a950a0b249b71dc341da5428e4b19ce259f26b8"
+  },
+  "Moscow_0_512.map": {
+    "url": "https://raw.githubusercontent.com/PathPlanning/MeshAStar/12574ff03d8d61ac153b4e4224eac2229a9577e1/maps/Moscow_0_512.map",
+    "sha256": "b7bf3e8ef5b4df0b500612953ba981a6953c13c73c0d4854d0f440a82f8c336f"
+  },
+  "Moscow_0_512.map.scen": {
+    "url": "https://raw.githubusercontent.com/PathPlanning/MeshAStar/12574ff03d8d61ac153b4e4224eac2229a9577e1/maps/Moscow_0_512.map.scen",
+    "sha256": "793c348b017e8d40c0fb94a9f2317f54fe45fd5ca8bdb93cc703a31bca54c52a"
+  },
+  "32room_000.map": {
+    "url": "https://www.movingai.com/benchmarks/room/32room_000.map.zip",
+    "sha256": "57fe06dadf5caa09c45e823521fc548398a1ebcc1c7dd89ffcee049146b88db9"
+  },
+  "32room_000.map.scen": {
+    "url": "https://www.movingai.com/benchmarks/room/32room_000.map-scen.zip",
+    "sha256": "a0a7b77e0a3d4ae16c4de2ad46978da02fb3313e0cacbb0a6166b6a2f35e57e1"
+  }
+}
