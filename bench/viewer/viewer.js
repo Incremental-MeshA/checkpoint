@@ -4,6 +4,8 @@ import {MapView} from "./map.js";
 const $ = id => document.getElementById(id);
 const names = {astar:"A*", dstar_lite:"D* Lite", mpgaa:"MPGAA*",
     dstar_lite_chain:"D* Lite (chains)", mpgaa_chain:"MPGAA* (chains)",
+    md_scan:"MD-A* Scan", mpgaa_boundary:"Boundary-MPGAA*", mpgaa_stamp:"Stamp-MPGAA*",
+    mpgaa_batch:"Batch-MPGAA*", mpgaa_witness:"Witness-MPGAA*",
     navigation_replanning:"Fully observed changes", limited_visibility:"Limited visibility"};
 const panels = [
     {slot:"left", canvas:$("mapView"), legend:$("legend"), title:$("titleLeft"), phase:$("phase"),

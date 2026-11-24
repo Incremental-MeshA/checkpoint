@@ -101,7 +101,7 @@ class Viewer(unittest.TestCase):
                                 self.assertEqual(trace[0] // 8, y * width + x)
                         boundary = record.pop("reuse_from_edge")
                         if boundary is not None:
-                            self.assertTrue(algo.startswith("mpgaa"))
+                            self.assertTrue(algo.startswith("mpgaa") or algo == "md_scan")
                             self.assertGreaterEqual(boundary, 0)
                             reused = True
                     self.assertEqual(clean(records), clean(expected))

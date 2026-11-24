@@ -27,6 +27,9 @@ GRAPHS = ("lattice", "mesh")
 ORIGINAL_VARIANTS = [(a, g) for a in ALGORITHMS for g in GRAPHS]
 ALGORITHMS.update({"dstar_lite_chain": ("D* Lite (chains)", "#6d4b93"),
                    "mpgaa_chain": ("MPGAA* (chains)", "#926a08")})
+ALGORITHMS.update({"md_scan": ("MD-A* Scan", "#24437f"), "mpgaa_boundary": ("Boundary", "#8c3347"),
+                   "mpgaa_stamp": ("Stamp", "#42733e"), "mpgaa_batch": ("Batch", "#806735"),
+                   "mpgaa_witness": ("Witness", "#72598d")})
 BASES = {"same": "A* on the same graph", "lattice": "Lattice A* for all algorithms"}
 
 
@@ -210,12 +213,16 @@ def diagnostic_data(series):
 
 def diagnostics(data):
     datasets = {key: diagnostic_data(series) for key, series in data.items()}
+    variants = next(iter(datasets.values()))
     figures = []
     for number, (kind, caption) in enumerate((
         ("cells", "Distinct cells expanded on the initial plan. Each point pairs lattice and mesh for the same task, seed and condition; points below the diagonal favour mesh."),
         ("queues", "Mean queue operations per episode during replanning. The repair segment includes all operations on the MPGAA* repair queue."),
         ("latency", "Cumulative distribution of replanning latency. Each request after the initial plan contributes one observation."),
     ), 5):
+        if kind == "cells" and not any((a, "lattice") in variants and (a, "mesh") in variants
+                                       for a in ALGORITHMS):
+            continue
         fig = Figure(figsize=(9.6, 3.6), layout="constrained")
         axes = fig.subplots(1, 2, sharey=True)
         for ax, (scenario, samples) in zip(axes, datasets.items()):
@@ -225,6 +232,8 @@ def diagnostics(data):
             ax.set_axisbelow(True)
             if kind == "cells":
                 for (algo, (name, color)), marker in zip(ALGORITHMS.items(), ("o", "s", "^")):
+                    if (algo, "lattice") not in samples or (algo, "mesh") not in samples:
+                        continue
                     x = samples[algo, "lattice"]["cells"]
                     y = samples[algo, "mesh"]["cells"]
                     ax.scatter(x, y, s=20, facecolors="none", edgecolors=color,
@@ -302,10 +311,12 @@ def diagnostics(data):
 
 def render(results, destination):
     data = load_series(results)
+    variants = next(iter(next(iter(data.values())).values()))
+    bases = [key for key in BASES if key != "lattice" or ("astar", "lattice") in variants]
     sections = []
     with rc_context({"font.family": "serif", "font.serif": ["Times New Roman", "DejaVu Serif"],
                      "font.size": 10, "svg.fonttype": "none", "axes.linewidth": .7}):
-        for base in BASES:
+        for base in bases:
             tables = "".join(make_table(data, metric, base) for metric in METRICS)
             scenarios = []
             for key, (title, _, _, _) in SCENARIOS.items():
@@ -318,6 +329,8 @@ def render(results, destination):
     total = sum(len(rows) for series in data.values() for point in series.values() for rows in point.values())
     template = Path(__file__).with_name("timing_template.html").read_text(encoding="utf-8")
     html = template.replace("{{COUNT}}", str(total))
+    html = html.replace("{{GRAPHS}}", " and ".join(g for g in GRAPHS if any(v[1] == g for v in variants)))
+    html = html.replace("{{BASES}}", "".join(f'<option value="{k}">{BASES[k]}</option>' for k in bases))
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(html.replace("{{CONTENT}}", "".join(sections)), encoding="utf-8")
 

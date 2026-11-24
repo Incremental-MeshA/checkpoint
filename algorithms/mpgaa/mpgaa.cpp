@@ -1,5 +1,6 @@
 #include "../../src/changed_edges.hpp"
 #include "a_star_search.hpp"
+#include "motion_masks.hpp"
 
 namespace {
 // Adaptive estimates and cached paths belong to complete poses. Mesh prefixes
@@ -15,6 +16,13 @@ class MPGAA final : public Planner {
     std::unordered_map<Node, AdaptiveState> adaptive_states;
     std::unordered_map<Node, Edge> next;
     std::vector<double> initial_h_by_cell;
+    std::unique_ptr<MotionMasks> masks;
+    size_t learned_arcs = 0;
+
+    bool valid(Node source, Node target, int primitive) {
+        if (masks) return masks->flags(source)[masks->slot_of(primitive)];
+        return graph.traversable(graph.point(source), graph.point(target), primitive, -2);
+    }
 
     Cost primitive_cost(int primitive_index) const {
         const Primitive &primitive = graph.primitives[primitive_index];
@@ -48,7 +56,7 @@ class MPGAA final : public Planner {
     void ReestablishConsistency(const Batch &batch, Metrics &metrics) {
         auto index_start = Metrics::Clock::now();
         std::unordered_map<Node, Cost> initial_h_decreases;
-        increased_h_index.visit(batch, [&](Node s, Edge edge, EdgeChange) {
+        auto seed = [&](Node s, Edge edge) {
             if (metrics.walkthrough)
                 metrics.opened.observe(graph, s, graph.primitives[edge.primitive].id, {}, {});
             Cost candidate_h = edge.cost + h(edge.node);
@@ -56,9 +64,23 @@ class MPGAA final : public Planner {
                 auto it = initial_h_decreases.emplace(s, candidate_h).first;
                 it->second = std::min(it->second, candidate_h);
             }
-        });
-        metrics.changed_edges_ms = Metrics::since(index_start);
-        metrics.batch_seeds = initial_h_decreases.size();
+        };
+        if (masks && masks->scan_repair(learned_arcs, batch.clear.size())) {
+            for (const auto &[s, state] : adaptive_states) {
+                Point origin = graph.point(s);
+                for (const auto &arc : pose_arcs[graph.type(s)].out) {
+                    Point target = origin + arc.delta;
+                    if (!graph.grid.contains(target)) continue;
+                    Node v = graph.at(target, arc.type);
+                    if (arc.cost + h(v) < state.h && valid(s, v, arc.primitive))
+                        seed(s, {v, arc.cost, arc.primitive, arc.slot, -2});
+                }
+            }
+        } else {
+            increased_h_index.visit(batch, [&](Node s, Edge edge, EdgeChange) { seed(s, edge); });
+        }
+        metrics.changed_edges_ms += Metrics::since(index_start);
+        metrics.batch_seeds += initial_h_decreases.size();
         IndexedOpen Q;
         // Algorithm 2, lines 5-13. Callers check the decrease before insertion.
         // This variant updates h and Q here. Only BuildPath writes next.
@@ -82,6 +104,7 @@ class MPGAA final : public Planner {
             Cost h_prime = adaptive_states.at(s_prime).h;
             if (h_prime == graph.forward(s_prime, goal)) {
                 increased_h_index.forget(s_prime);
+                if (masks) learned_arcs -= pose_arcs[graph.type(s_prime)].out.size();
                 adaptive_states.erase(s_prime); // Q no longer holds this state.
             }
             Point target = graph.point(s_prime);
@@ -92,7 +115,7 @@ class MPGAA final : public Planner {
                 auto it = adaptive_states.find(s);
                 if (it == adaptive_states.end()) continue;
                 Cost candidate_h = arc.cost + h_prime;
-                if (candidate_h < it->second.h && graph.traversable(source, target, arc.primitive, -2))
+                if (candidate_h < it->second.h && valid(s, s_prime, arc.primitive))
                     InsertState(s, candidate_h, it->second);
             }
         }
@@ -107,7 +130,7 @@ class MPGAA final : public Planner {
             if (it == next.end() || invalid_next_path.count(s)) break;
             const Edge &edge = it->second;
             if (h(s) != edge.cost + h(edge.node) ||
-                !graph.traversable(graph.point(s), graph.point(edge.node), edge.primitive, -2))
+                !valid(s, edge.node, edge.primitive))
                 break;
             next_path.path.push_back(edge);
             s = edge.node;
@@ -181,8 +204,12 @@ public:
         : Planner(graph, s_goal), pose_arcs(build_pose_arcs()),
           increased_h_index(graph, WatchedEnd::source, &pose_arcs),
           initial_h_by_cell(graph.grid.blocked.size(), -1.0) {}
+    MPGAA(Graph &graph, Node goal, MaskMode mode) : MPGAA(graph, goal) {
+        masks = std::make_unique<MotionMasks>(graph, mode);
+    }
 
     Result plan(Node s_start, const Batch &batch, Metrics &metrics) override {
+        if (masks) masks->update(batch);
         if (!batch.clear.empty()) ReestablishConsistency(batch, metrics);
         if (graph.isolated_endpoint(s_start, goal)) return {};
         metrics.astar_started = true;
@@ -205,7 +232,10 @@ public:
                                 metrics.learned_poses.push_back(int64_t(graph.cell(s_prime)) * 16 + graph.type(s_prime));
                             }
                             auto [it, inserted] = adaptive_states.try_emplace(s_prime);
-                            if (inserted) increased_h_index.watch(s_prime);
+                            if (inserted) {
+                                increased_h_index.watch(s_prime);
+                                if (masks) learned_arcs += pose_arcs[graph.type(s_prime)].out.size();
+                            }
                             it->second.h = updated_h;
                         }
                     }
@@ -222,6 +252,15 @@ public:
                 Closed.push_back(s);
             }
             metrics.expand(graph, s);
+            if (masks) {
+                const auto &flags = masks->flags(s);
+                for (const auto &arc : pose_arcs[graph.type(s)].out) {
+                    if (!flags[masks->slot_of(arc.primitive)]) continue;
+                    Node target = graph.at(graph.point(s) + arc.delta, arc.type);
+                    relax_primitive(astar, target, arc.primitive, g + arc.cost);
+                }
+                continue;
+            }
             graph.successors(s, successors);
             for (const Edge &edge : successors) {
                 if (edge.primitive >= 0) relax_primitive(astar, edge.node, edge.primitive, g + edge.cost);
@@ -235,4 +274,17 @@ public:
 
 std::unique_ptr<Planner> mpgaa(Graph &graph, Node s_goal) {
     return std::make_unique<MPGAA>(graph, s_goal);
+}
+
+std::unique_ptr<Planner> mpgaa_boundary(Graph &g, Node goal) {
+    return std::make_unique<MPGAA>(g, goal, MaskMode::Boundary);
+}
+std::unique_ptr<Planner> mpgaa_stamp(Graph &g, Node goal) {
+    return std::make_unique<MPGAA>(g, goal, MaskMode::Stamp);
+}
+std::unique_ptr<Planner> mpgaa_batch(Graph &g, Node goal) {
+    return std::make_unique<MPGAA>(g, goal, MaskMode::Batch);
+}
+std::unique_ptr<Planner> mpgaa_witness(Graph &g, Node goal) {
+    return std::make_unique<MPGAA>(g, goal, MaskMode::Witness);
 }

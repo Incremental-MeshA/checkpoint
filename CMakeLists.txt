@@ -3,6 +3,7 @@ project(mesh_bench LANGUAGES CXX)
 add_executable(planner src/main.cpp src/graph.cpp src/batch.cpp src/changed_edges.cpp
     algorithms/astar/astar.cpp algorithms/dstar_lite/dstar_lite.cpp algorithms/mpgaa/mpgaa.cpp
     algorithms/dstar_lite_chain/dstar_lite_chain.cpp algorithms/mpgaa_chain/mpgaa_chain.cpp
+    algorithms/md_scan/md_scan.cpp
     algorithms/astar/paper/KC_heap.cpp algorithms/astar/paper/KC_searching.cpp
     algorithms/astar/paper/KC_structs.cpp algorithms/astar/paper/KC_search_params.cpp)
 target_compile_features(planner PRIVATE cxx_std_17)

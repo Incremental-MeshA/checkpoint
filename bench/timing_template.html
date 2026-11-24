@@ -36,8 +36,8 @@ h1{font-size:21pt}h2{font-size:13pt;break-after:avoid}.meta,.tools{font-size:10p
 .tables,.charts{grid-template-columns:repeat(2,minmax(0,1fr));gap:6mm}table{font-size:8pt}th,td{padding:2pt 1pt}
 thead th[colspan]{white-space:normal}.scroll{overflow:visible}figcaption{font-size:9pt}}
 </style>
-<main><div class="intro"><h1>Planning Time Comparison</h1><p class="meta">car16 · lattice and mesh · {{COUNT}} episodes in matched comparisons</p></div>
-<div class="tools"><label for="base">Baseline</label><select id="base"><option value="same">A* on the same graph</option><option value="lattice">Lattice A* for all algorithms</option></select>
+<main><div class="intro"><h1>Planning Time Comparison</h1><p class="meta">car16 · {{GRAPHS}} · {{COUNT}} episodes in matched comparisons</p></div>
+<div class="tools"><label for="base">Baseline</label><select id="base">{{BASES}}</select>
 <span>Speedup = mean A* time / mean algorithm time. Values above 1× indicate faster planning.</span></div>
 <h2 class="section-title">Mean time per episode</h2>
 {{CONTENT}}</main>

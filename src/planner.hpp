@@ -100,6 +100,7 @@ Factory mpgaa;
 Factory dstar_lite_chain;
 /// Contract unbranched mesh chains in graph, then create an MPGAA* planner for goal.
 Factory mpgaa_chain;
+Factory mpgaa_boundary, mpgaa_stamp, mpgaa_batch, mpgaa_witness, md_scan;
 /// Construct the reference A* planner for graph and the fixed goal node. On a mesh, use mesh_table
 /// if supplied. Otherwise derive the mesh configurations from graph.
 std::unique_ptr<Planner> paper_astar(Graph &graph, Node goal, const MeshInfo *mesh_table);

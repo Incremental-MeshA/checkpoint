@@ -121,4 +121,15 @@ foreach ($r in (Get-Content -Raw config/visibility.json | ConvertFrom-Json).radi
 
 [Результаты проверочных прогонов](results/README.md)
 
+## Пять вариантов из Incremental-MeshA/experiments
+
+Исследовательская серия включает MD-A* Scan, Boundary-MPGAA*, Stamp, Batch, Witness и два контроля на mesh (A* и MPGAA*). Все семь работают на одном наборе примитивов car16. Выбрать один вариант можно, например, командой `python -m bench run --algorithm mpgaa_stamp`.
+
+```shell
+python -m bench run --suite experiments --change-percent 0.1 --repeats 3 --budget-seconds 1800
+python -m bench run --suite experiments --config config/visibility.json --radius 25 --repeats 3 --budget-seconds 1800
+```
+
+[Отбор по веткам, результаты на трёх картах и проверка на идентичных запросах](results/experiments-five/README.md)
+
 

@@ -79,6 +79,8 @@ int main(int argc, char **argv) {
             throw std::runtime_error("Unknown graph");
         std::map<std::string, Factory *> factories = {
             {"dstar_lite", dstar_lite}, {"mpgaa", mpgaa},
+            {"md_scan", md_scan}, {"mpgaa_boundary", mpgaa_boundary}, {"mpgaa_stamp", mpgaa_stamp},
+            {"mpgaa_batch", mpgaa_batch}, {"mpgaa_witness", mpgaa_witness},
             {"dstar_lite_chain", dstar_lite_chain}, {"mpgaa_chain", mpgaa_chain}};
         std::unique_ptr<MeshInfo> mesh_table;
         std::filesystem::path primitives_file(argv[2]);

@@ -1,5 +1,7 @@
 # Проверка быстрого профиля
 
+[Пять алгоритмов из experiments на car16, исходные замеры и сравнение с mesh A* и MPGAA*](experiments-five/README.md)
+
 [Все восемь вариантов планирования, профиль long](long-all-planners/timing.html) · [3 456 эпизодов](long-all-planners/summary.csv) · [Средние времена на общих задачах](long-all-planners/means.csv) · [Исходы по каждому алгоритму](long-all-planners/outcomes.csv)
 
 [Quick на трёх картах с авторскими mesh A* и lattice A*](quick-paper-baseline/timing.html) · [432 эпизода](quick-paper-baseline/summary.csv) · [Исходы восьми серий](quick-paper-baseline/outcomes.csv) · [Сверка первых маршрутов с отдельной сборкой авторов](quick-paper-baseline/author-check.csv)

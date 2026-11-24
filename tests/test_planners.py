@@ -258,6 +258,24 @@ class Planners(unittest.TestCase):
                 queries.append((pose, block, clear))
             self.check_sequence(path,CONTROLS,goal,queries)
 
+    def test_deferred_opening_inside_a_curved_primitive(self):
+        # The footprint can leave the geometric sublevel set around both
+        # endpoints. Ignoring the footprint correction would certify cost 6.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "curve.map"
+            controls = Path(tmp) / "curve.txt"
+            grid_file(path, 10, 9)
+            bend = [(0,0),(0,1),(0,2),(0,3),(0,4),(1,4),(2,4),(3,4),
+                    (4,4),(4,3),(4,2),(4,1),(4,0)]
+            curved = primitive(71, 0, 1, bend).replace("length is: 12", "length is: 4")
+            straight = primitive(72, 0, 1, [(x,0) for x in range(5)]).replace("length is: 4", "length is: 6")
+            controls.write_text(curved + straight)
+            pose, goal = (1,1,0), (5,1,1)
+            a, b, far = 51, 53, 89
+            queries = [(pose,[a,far],[]), (pose,[],[far]), (pose,[],[a]),
+                       (pose,[a,b],[]), (pose,[],[a]), (pose,[],[b])]
+            self.assertEqual(self.check_sequence(path, controls, goal, queries), [6,6,4,6,6,4])
+
     def test_dstar_replays_berlin_visibility_requests(self):
         # Observations from full-pinned/visibility-25, with costs checked by lattice A*.
         fixtures = Path(__file__).with_name("fixtures")

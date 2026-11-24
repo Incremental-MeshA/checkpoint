@@ -20,9 +20,13 @@ from .visibility import INITIAL_PERCENT, PERIOD, navigate_visible
 
 ALGORITHMS = ["astar", "dstar_lite", "mpgaa"]
 GRAPHS = ["lattice", "mesh"]
-VARIANTS = list(itertools.product(ALGORITHMS, GRAPHS)) + [
+DEFAULT_VARIANTS = list(itertools.product(ALGORITHMS, GRAPHS)) + [
     ("dstar_lite_chain", "mesh"), ("mpgaa_chain", "mesh")
 ]
+RESEARCH_VARIANTS = [(a, "mesh") for a in
+                     ("md_scan", "mpgaa_boundary", "mpgaa_stamp", "mpgaa_batch", "mpgaa_witness")]
+VARIANTS = DEFAULT_VARIANTS + RESEARCH_VARIANTS
+RESEARCH_SUITE = [("astar", "mesh"), ("mpgaa", "mesh")] + RESEARCH_VARIANTS
 SCENARIOS = {"navigation_replanning": navigate, "limited_visibility": navigate_visible}
 SUMMARY = ["task", "map", "algorithm", "graph", "percent", "repeat", "seed", "status",
            "scenario", "radius", "moves", "events", "world_updates", "total_ms", "init_ms", "first_ms", "replan_ms", "navigation_ms",
@@ -98,7 +102,8 @@ def run(args):
     if not tasks:
         raise ValueError("The profile selected no tasks")
     out = args.output or ROOT / "runs" / datetime.now().strftime("%Y%m%d-%H%M%S-%f")
-    variants = [(a, g) for a, g in VARIANTS
+    cohort = RESEARCH_SUITE if args.suite == "experiments" else (VARIANTS if args.algorithm else DEFAULT_VARIANTS)
+    variants = [(a, g) for a, g in cohort
                 if (not args.algorithm or a == args.algorithm) and (not args.graph or g == args.graph)]
     if not variants:
         raise ValueError(f"{args.algorithm} does not support {args.graph}")
@@ -213,6 +218,7 @@ def main():
     runner.add_argument("--config", type=Path, default=ROOT/"config"/"benchmark.json")
     runner.add_argument("--profile", choices=["quick","long"], default="quick")
     runner.add_argument("--graph", choices=GRAPHS, help="Run only variants on this graph")
+    runner.add_argument("--suite", choices=["experiments"], help="Five research planners and two mesh controls")
     runner.add_argument("--algorithm", choices=sorted({a for a, _ in VARIANTS}),
                         help="Run only this algorithm on its supported graphs")
     runner.add_argument("--change-percent", type=float)
